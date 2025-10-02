@@ -15,6 +15,7 @@ import UpdateTicket from "./components/UpdateTicket";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
+import Login from "./components/login";
 
 const Dashboard: React.FC = () => (
   <main className="flex-1">
@@ -75,6 +76,7 @@ const AppContent: React.FC = () => {
       <Sidebar />
       <main className="flex-1 overflow-y-auto">
         <Routes>
+          <Route path="/login" element={<Login />} />
           <Route path="/" element={<Navigate to="/ticket" />} />
           <Route path="/ticket" element={<Ticket />} />
           <Route
