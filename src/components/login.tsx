@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import axios from "axios";
 import loginImg from "../assets/img/loginIMG.jpg";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { login } from "../store/slices/authSlice";
 
 interface LoginProps {
   onLogin: () => void;
@@ -8,28 +9,15 @@ interface LoginProps {
 }
 
 const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
+  const dispatch = useAppDispatch();
+  const { loading, error } = useAppSelector((state) => state.auth);
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    if (!username || !password) {
-      setError("Vui lòng nhập đầy đủ thông tin!");
-      return;
-    }
-    setLoading(true);
-    // Mock API login
-    await new Promise(resolve => setTimeout(resolve, 800));
-    if (username === "admin" && password === "admin") {
-      onLogin();
-    } else {
-      setError("Đăng nhập thất bại! Tài khoản hoặc mật khẩu không đúng.");
-    }
-    setLoading(false);
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); // ngăn reload page
+    dispatch(login({ email: username, password }));
   };
 
   return (
@@ -43,34 +31,57 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
             Hey! Welcome back to your special piace
           </p>
 
-              <form className="flex flex-col space-y-6" onSubmit={handleSubmit}>
-                {error && (
-                  <div className="text-red-500 text-sm text-center mb-2">{error}</div>
-                )}
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Username"
-                    value={username}
-                    onChange={e => setUsername(e.target.value)}
-                    className="pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 w-full shadow-sm"
-                  />
-                  <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-indigo-400">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a7.5 7.5 0 0 1 13 0"/></svg>
-                  </span>
-                </div>
-                <div className="relative">
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    className="pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 w-full shadow-sm"
-                  />
-                  <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-indigo-400">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="6" y="10" width="12" height="10" rx="2"/><path d="M12 16v-4"/><circle cx="12" cy="7" r="2"/></svg>
-                  </span>
-                </div>
+          <form className="flex flex-col space-y-6" onSubmit={handleSubmit}>
+            {error && (
+              <div className="text-red-500 text-sm text-center mb-2">
+                {error}
+              </div>
+            )}
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 w-full shadow-sm"
+              />
+              <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-indigo-400">
+                <svg
+                  width="20"
+                  height="20"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <circle cx="12" cy="7" r="4" />
+                  <path d="M5.5 21a7.5 7.5 0 0 1 13 0" />
+                </svg>
+              </span>
+            </div>
+            <div className="relative">
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 w-full shadow-sm"
+              />
+              <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-indigo-400">
+                <svg
+                  width="20"
+                  height="20"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <rect x="6" y="10" width="12" height="10" rx="2" />
+                  <path d="M12 16v-4" />
+                  <circle cx="12" cy="7" r="2" />
+                </svg>
+              </span>
+            </div>
 
             <div className="flex justify-between items-center text-sm text-gray-600">
               <label className="flex items-center space-x-2">
@@ -85,19 +96,23 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
               </a>
             </div>
 
-                <button type="submit" className="w-full bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white py-3 rounded-xl font-bold text-lg shadow-lg transition disabled:opacity-60" disabled={loading}>
-                  {loading ? "Đang đăng nhập..." : "Sign in"}
-                </button>
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white py-3 rounded-xl font-bold text-lg shadow-lg transition disabled:opacity-60"
+              disabled={loading}
+            >
+              {loading ? "Đang đăng nhập..." : "Sign in"}
+            </button>
 
             <div className="text-center text-sm text-gray-600">
               <span>Don't have an account? </span>
-                <button
-                  type="button"
-                  className="text-indigo-500 hover:underline font-medium"
-                  onClick={onSwitchToRegister}
-                >
-                  Sign up
-                </button>
+              <button
+                type="button"
+                className="text-indigo-500 hover:underline font-medium"
+                onClick={onSwitchToRegister}
+              >
+                Sign up
+              </button>
             </div>
           </form>
         </div>
