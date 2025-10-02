@@ -23,6 +23,9 @@ export const login = createAsyncThunk<LoginData | null, LoginDto>(
   async (data, thunkAPI) => {
     const res = await authService.login(data);
     if (!res) return thunkAPI.rejectWithValue("Login failed");
+
+    localStorage.setItem("access_token", res.access_token);
+
     return res;
   }
 );
