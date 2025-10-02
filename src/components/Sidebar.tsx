@@ -4,8 +4,10 @@ import {
   Plus,
   Search,
 } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 const Sidebar = () => {
+  const location = useLocation();
   return (
     <div>
       <div className="w-64 bg-white border-r border-gray-200">
@@ -35,9 +37,9 @@ const Sidebar = () => {
 
           {/* Navigation */}
           <nav className="space-y-1 mb-8">
-            <a
-              href="#"
-              className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-md"
+            <Link
+              to="/"
+              className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md ${location.pathname === '/' ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'}`}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -46,9 +48,9 @@ const Sidebar = () => {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 className="icon icon-tabler icons-tabler-outline icon-tabler-layout-dashboard"
               >
                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -58,7 +60,7 @@ const Sidebar = () => {
                 <path d="M15 4h4a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1v-2a1 1 0 0 1 1 -1" />
               </svg>{" "}
               Dashboard
-            </a>
+            </Link>
             <a
               href="#"
               className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md"
@@ -102,9 +104,9 @@ const Sidebar = () => {
               </svg>{" "}
               Notification
             </a>
-            <a
-              href="#"
-              className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md"
+            <Link
+              to="/ticket"
+              className={`flex items-center gap-3 px-3 py-2 text-sm rounded-md ${location.pathname === '/ticket' ? 'text-blue-600 bg-blue-50 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -113,9 +115,9 @@ const Sidebar = () => {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 className="icon icon-tabler icons-tabler-outline icon-tabler-ticket"
               >
                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -125,7 +127,7 @@ const Sidebar = () => {
                 <path d="M5 5h14a2 2 0 0 1 2 2v3a2 2 0 0 0 0 4v3a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-3a2 2 0 0 0 0 -4v-3a2 2 0 0 1 2 -2" />
               </svg>{" "}
               Ticket
-            </a>
+            </Link>
             <a
               href="#"
               className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md"
