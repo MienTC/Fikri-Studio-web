@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import loginImg from "../assets/img/loginIMG.jpg";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { login } from "../store/slices/authSlice";
+import { toast } from "react-toastify";
 
 interface LoginProps {
   onLogin: () => void;
@@ -18,6 +19,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault(); // ngăn reload page
     dispatch(login({ email: username, password }));
+    toast.success("Login successfully");
   };
 
   return (
