@@ -20,7 +20,7 @@ const UpdateTicket: React.FC<{ onUpdate?: (ticket: any) => void }> = ({ onUpdate
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<"HIGH" | "MEDIUM" | "LOW">("MEDIUM");
-  const [ticketType, setTicketType] = useState("INCIDENT");
+  const [ticketType, setTicketType] = useState<"INCIDENT" | "QUESTION" | "SUGGESTION" | "PROBLEM" | "TASK" | "OTHER">("INCIDENT");
   const [customerId, setCustomerId] = useState<number | string>(""); 
   const [createdAt, setCreatedAt] = useState(""); 
 
@@ -82,6 +82,7 @@ const UpdateTicket: React.FC<{ onUpdate?: (ticket: any) => void }> = ({ onUpdate
       setError("Failed to update ticket.");
       console.error(err);
     }
+    console.log("Update payload:", updatedData);
   };
 
   const inputStyle = "block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm transition disabled:bg-gray-100";
@@ -137,7 +138,7 @@ const UpdateTicket: React.FC<{ onUpdate?: (ticket: any) => void }> = ({ onUpdate
             </div>
             <div>
               <label htmlFor="ticketType" className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-              <select id="ticketType" className={inputStyle} value={ticketType} onChange={(e) => setTicketType(e.target.value)}>
+              <select id="ticketType" className={inputStyle} value={ticketType} onChange={(e) => setTicketType(e.target.value as "INCIDENT" | "QUESTION" | "SUGGESTION" | "PROBLEM" | "TASK" | "OTHER")}>
                 {ticketTypes.map((type) => <option key={type}>{type}</option>)}
               </select>
             </div>

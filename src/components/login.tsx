@@ -38,7 +38,7 @@ const Login: React.FC<{ setIsAuthenticated: (v: boolean) => void }> = ({
         setErrorMessage("Sai tài khoản hoặc mật khẩu!");
       }
     } catch (err: any) {
-      setErrorMessage("Lỗi đăng nhập!");
+      setErrorMessage("Tài khoản hoặc mật khẩu sai!");
       console.error("Login error:", err?.response?.data || err);
     }
   };

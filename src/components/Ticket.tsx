@@ -80,16 +80,16 @@ const Ticket: React.FC<TicketProps> = ({ tickets = [], onDelete }) => {
         </div>
 
         {selectedIds.length > 0 && (
-          <div className="mb-4 flex gap-2 items-center">
+          <div className="justify-end mb-4 flex gap-2 items-center">
             <button
               onClick={handleUpdateSelected}
-              className={`px-4 py-2 bg-blue-600 text-white rounded text-sm transition ${selectedIds.length === tickets.length ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
+              className={`px-4 py-2 bg-blue-500 text-white rounded text-sm transition ${selectedIds.length === tickets.length ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
               disabled={selectedIds.length === tickets.length}
               title={selectedIds.length === tickets.length ? 'Không thể update tất cả ticket cùng lúc' : ''}
             >
               Update
             </button>
-            <button onClick={handleDeleteSelected} className="px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm">Delete</button>
+            <button onClick={handleDeleteSelected} className="px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-300 text-sm">Delete</button>
             <span className="text-sm text-gray-500">Đã chọn: {selectedIds.length}</span>
           </div>
         )}

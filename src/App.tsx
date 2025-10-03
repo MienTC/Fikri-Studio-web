@@ -68,63 +68,33 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      <div className="flex h-screen bg-gray-50">
-        {isAuthenticated && <Sidebar />}
-        <main className="flex-1 overflow-y-auto">
-          <Routes>
-            <Route
-              path="/login"
-              element={<Login setIsAuthenticated={setIsAuthenticated} />}
-            />
-            <Route
-              path="/"
-              element={
-                <PrivateRoute isAuthenticated={isAuthenticated}>
-                  <Navigate to="/dashboard" />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <PrivateRoute isAuthenticated={isAuthenticated}>
-                  <>
-                    <Header />
-                    <Charts />
-                  </>
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/ticket"
-              element={
-                <PrivateRoute isAuthenticated={isAuthenticated}>
-                  <Ticket
-                    tickets={tickets}
-                    onDelete={handleDeleteTicket}
-                  />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/addticket"
-              element={
-                <PrivateRoute isAuthenticated={isAuthenticated}>
-                  <CreateTicket onAdd={handleAddTicket} />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/update-ticket/:id"
-              element={
-                <PrivateRoute isAuthenticated={isAuthenticated}>
-                  <UpdateTicket onUpdate={handleUpdateTicket} />
-                </PrivateRoute>
-              }
-            />
-          </Routes>
-        </main>
-      </div>
+      <Routes>
+        <Route
+          path="/"
+          element={<Login setIsAuthenticated={setIsAuthenticated} />}
+        />
+        <Route
+          path="/*"
+          element={
+            isAuthenticated ? (
+              <div className="flex h-screen bg-gray-50">
+                <Sidebar />
+                <main className="flex-1 overflow-y-auto">
+                  <Routes>
+                    <Route path="dashboard" element={<><Header /><Charts /></>} />
+                    <Route path="ticket" element={<Ticket tickets={tickets} onDelete={handleDeleteTicket} />} />
+                    <Route path="addticket" element={<CreateTicket onAdd={handleAddTicket} />} />
+                    <Route path="update-ticket/:id" element={<UpdateTicket onUpdate={handleUpdateTicket} />} />
+                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                  </Routes>
+                </main>
+              </div>
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+      </Routes>
     </Router>
   );
 };
