@@ -1,25 +1,46 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import loginImg from "../assets/img/loginIMG.jpg";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { login } from "../store/slices/authSlice";
 import { toast } from "react-toastify";
+import api from "../services/api"; 
 
-interface LoginProps {
-  onLogin: () => void;
-  onSwitchToRegister?: () => void;
-}
-
-const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
+const Login: React.FC<{ setIsAuthenticated: (v: boolean) => void }> = ({
+  setIsAuthenticated,
+}) => {
   const dispatch = useAppDispatch();
-  const { loading, error } = useAppSelector((state) => state.auth);
+  const { loading } = useAppSelector((state) => state.auth);
+  const navigate = useNavigate();
 
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // ngăn reload page
-    dispatch(login({ email: username, password }));
-    toast.success("Login successfully");
+    e.preventDefault();
+    try {
+      // Dùng api thay cho axios
+      const res = await api.post("/auth/login", { email, password });
+
+      if (res.status === 201 && res.data?.data?.access_token) {
+        const token = res.data.data.access_token;
+        const user = res.data.data.user;
+
+        setIsAuthenticated(true);
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+
+        dispatch(login({ email, password }));
+        toast.success("Login successfully");
+        navigate("/dashboard");
+      } else {
+        setErrorMessage("Sai tài khoản hoặc mật khẩu!");
+      }
+    } catch (err: any) {
+      setErrorMessage("Lỗi đăng nhập!");
+      console.error("Login error:", err?.response?.data || err);
+    }
   };
 
   return (
@@ -30,21 +51,24 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
           <h1 className="text-3xl font-extrabold mb-2 ">Hola,</h1>
           <h1 className="text-3xl font-extrabold mb-2">Welcome Back!</h1>
           <p className="text-gray-500 mb-8">
-            Hey! Welcome back to your special piace
+            Hey! Welcome back to your special place
           </p>
 
           <form className="flex flex-col space-y-6" onSubmit={handleSubmit}>
-            {error && (
+            {errorMessage && (
               <div className="text-red-500 text-sm text-center mb-2">
-                {error}
+                {errorMessage}
               </div>
             )}
+
+            {/* Email */}
             <div className="relative">
               <input
-                type="text"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="username"
                 className="pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 w-full shadow-sm"
               />
               <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-indigo-400">
@@ -61,12 +85,15 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
                 </svg>
               </span>
             </div>
+
+            {/* Password */}
             <div className="relative">
               <input
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
                 className="pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 w-full shadow-sm"
               />
               <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-indigo-400">
@@ -111,7 +138,7 @@ const Login: React.FC<LoginProps> = ({ onLogin, onSwitchToRegister }) => {
               <button
                 type="button"
                 className="text-indigo-500 hover:underline font-medium"
-                onClick={onSwitchToRegister}
+                onClick={() => console.log("Switch to Register")}
               >
                 Sign up
               </button>

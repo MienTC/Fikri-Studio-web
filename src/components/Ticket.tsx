@@ -1,27 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { ticketService } from "../services/ticketService";
 
-const API_URL = "/api/tickets";
-const API_TOKEN = import.meta.env.VITE_API_TOKEN;
-
-interface TicketData {
-  id: number;
-  title: string;
-  priority: "HIGH" | "MEDIUM" | "LOW";
-  type: string;
-  customer: {
-    name: string;
-  };
-  createdAt: string;
-}
-
-const priorityColors = {
+const priorityColors: Record<string, string> = {
   HIGH: "bg-red-100 text-red-600",
   MEDIUM: "bg-yellow-100 text-yellow-600",
   LOW: "bg-green-100 text-green-600",
 };
-const typeColors = {
+const typeColors: Record<string, string> = {
   INCIDENT: "bg-red-100 text-red-600",
   SUGGESTION: "bg-blue-100 text-blue-600",
   QUESTION: "bg-gray-100 text-gray-600",
@@ -30,160 +17,146 @@ const typeColors = {
   OTHER: "bg-gray-100 text-gray-600",
 };
 
-const Ticket: React.FC = () => {
-  const [tickets, setTickets] = useState<TicketData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface TicketProps {
+  tickets: any[];
+  onDelete: (id: number) => void;
+}
+
+const Ticket: React.FC<TicketProps> = ({ tickets = [], onDelete }) => {
   const navigate = useNavigate();
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-  // State để lưu danh sách các ID của ticket được chọn
-  const [selectedTickets, setSelectedTickets] = useState<number[]>([]);
-
-  useEffect(() => {
-    const fetchTickets = async () => {
-      if (!API_URL || !API_TOKEN) {
-        setError("Vui lòng kiểm tra lại file .env và khởi động lại server.");
-        setLoading(false);
-        return;
-      }
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await axios.get(API_URL, {
-          headers: { Authorization: `Bearer ${API_TOKEN}` },
-        });
-        if (response.data && response.data.data) {
-          setTickets(response.data.data);
-        } else {
-          setError("Cấu trúc dữ liệu API trả về không hợp lệ.");
-        }
-      } catch (err) {
-        console.error("Lỗi khi gọi API:", err);
-        setError("Không thể kết nối hoặc xác thực với API.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTickets();
-  }, []);
-
-  // Hàm xử lý khi click vào checkbox "chọn tất cả" ở header
-  const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      // Nếu check, lấy ID của tất cả các ticket và đưa vào state
-      const allTicketIds = tickets.map((ticket) => ticket.id);
-      setSelectedTickets(allTicketIds);
+  // Chọn tất cả
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked) {
+      setSelectedIds(tickets.map((t) => t.id));
     } else {
-      // Nếu bỏ check, xóa hết ID trong state
-      setSelectedTickets([]);
+      setSelectedIds([]);
     }
   };
 
-  const handleSelectOne = (event: React.ChangeEvent<HTMLInputElement>, id: number) => {
-    if (event.target.checked) {
-      setSelectedTickets((prev) => [...prev, id]);
-    } else {
-      setSelectedTickets((prev) => prev.filter((ticketId) => ticketId !== id));
-    }
+  // Chọn từng dòng
+  const handleSelect = (id: number) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
   };
 
-  const isAllSelected = tickets.length > 0 && selectedTickets.length === tickets.length;
+  // Xóa nhiều
+  const handleDeleteSelected = async () => {
+    let success = 0;
+    let fail = 0;
+    for (const id of selectedIds) {
+      const ok = await ticketService.deleteTicket(id);
+      if (ok) {
+        onDelete(id);
+        success++;
+      } else {
+        fail++;
+      }
+    }
+    setSelectedIds([]);
+    if (success > 0) toast.success(`Đã xóa ${success} ticket thành công!`);
+    if (fail > 0) toast.error(`Xóa ${fail} ticket thất bại! (Có thể ticket không tồn tại hoặc backend không cho xóa)`);
+  };
 
-  if (loading) {
-    return <div className="flex-1 p-8 text-center text-gray-500">Đang tải danh sách ticket...</div>;
-  }
-
-  if (error) {
-    return <div className="flex-1 p-8 text-center text-red-600">Lỗi: {error}</div>;
-  }
+  const handleUpdateSelected = () => {
+    if (selectedIds.length > 0) {
+      navigate(`/update-ticket/${selectedIds[0]}`);
+    }
+  };
 
   return (
-    <div className="flex-1 p-6 bg-gray-50 overflow-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Ticket</h1>
-        <div className="flex items-center gap-4">
-          <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50">
-            Focus Mode
-          </button>
+    <div className="flex-1 p-6 bg-gray-50">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold">Tickets</h1>
           <button
-            onClick={() => navigate("/addticket")}
-            className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg shadow-sm hover:bg-green-700"
+            className="bg-green-400 p-2 hover:bg-green-600 text-white rounded-lg"
+            onClick={() => navigate('/addticket')}
           >
             Add Ticket
           </button>
         </div>
-      </div>
 
-      <div className="bg-white rounded-lg shadow">
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between gap-2 flex-wrap">
-          <input type="search" placeholder="Search" className="p-2 border rounded-md w-64" />
-          
-          {selectedTickets.length > 0 && (
-            <div className="flex items-center gap-2">
-              <button 
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg shadow-sm hover:bg-blue-700 disabled:bg-gray-400"
-                // Vô hiệu hóa nút Update nếu chọn nhiều hơn 1 ticket
-                disabled={selectedTickets.length !== 1}
-              >
-                Update
-              </button>
-              <button className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg shadow-sm hover:bg-red-700">
-                Delete
-              </button>
-              <span className="text-sm text-gray-500">{selectedTickets.length} selected</span>
-            </div>
-          )}
-        </div>
+        {selectedIds.length > 0 && (
+          <div className="mb-4 flex gap-2 items-center">
+            <button
+              onClick={handleUpdateSelected}
+              className={`px-4 py-2 bg-blue-600 text-white rounded text-sm transition ${selectedIds.length === tickets.length ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
+              disabled={selectedIds.length === tickets.length}
+              title={selectedIds.length === tickets.length ? 'Không thể update tất cả ticket cùng lúc' : ''}
+            >
+              Update
+            </button>
+            <button onClick={handleDeleteSelected} className="px-4 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200 text-sm">Delete</button>
+            <span className="text-sm text-gray-500">Đã chọn: {selectedIds.length}</span>
+          </div>
+        )}
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left text-gray-600">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+        <div className="bg-white shadow rounded-lg overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="p-4">
-                  {/* [MỚI] Liên kết checkbox header với state và hàm xử lý */}
-                  <input 
+                <th className="px-3 py-2">
+                  <input
                     type="checkbox"
-                    checked={isAllSelected}
+                    className="accent-blue-500 w-4 h-4 rounded"
+                    checked={selectedIds.length === tickets.length && tickets.length > 0}
                     onChange={handleSelectAll}
                   />
                 </th>
-                <th scope="col" className="px-6 py-3">Ticket ID</th>
-                <th scope="col" className="px-6 py-3">Subject</th>
-                <th scope="col" className="px-6 py-3">Priority</th>
-                <th scope="col" className="px-6 py-3">Type</th>
-                <th scope="col" className="px-6 py-3">Client</th>
-                <th scope="col" className="px-6 py-3">Request Date</th>
-                <th scope="col" className="px-6 py-3"></th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Ticket ID</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Subject</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Priority</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Client</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Request Date</th>
+                <th className="px-3 py-2 text-right"></th>
               </tr>
             </thead>
-            <tbody>
-              {tickets.map((ticket) => (
-                <tr key={ticket.id} className={`bg-white border-b hover:bg-gray-50 ${selectedTickets.includes(ticket.id) ? 'bg-blue-50' : ''}`}>
-                  <td className="p-4">
-                    {/* [MỚI] Liên kết checkbox của từng dòng với state và hàm xử lý */}
-                    <input 
-                      type="checkbox"
-                      checked={selectedTickets.includes(ticket.id)}
-                      onChange={(e) => handleSelectOne(e, ticket.id)}
-                    />
-                  </td>
-                  <td className="px-6 py-4 font-medium text-blue-600 whitespace-nowrap">#TC-{ticket.id}</td>
-                  <td className="px-6 py-4">{ticket.title}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${priorityColors[ticket.priority]}`}>
-                      {ticket.priority}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${typeColors[ticket.type as keyof typeof typeColors] || 'bg-gray-100 text-gray-600'}`}>
-                      {ticket.type}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">{ticket.customer.name}</td>
-                  <td className="px-6 py-4">{new Date(ticket.createdAt).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 text-right">...</td>
-                </tr>
-              ))}
+            <tbody className="bg-white divide-y divide-gray-200">
+              {(tickets || []).map((t) => {
+                const isSelected = selectedIds.includes(t.id);
+                return (
+                  <tr
+                    key={t.id}
+                    className={`hover:bg-blue-50 transition ${isSelected ? "ring-2 ring-blue-300 bg-blue-50" : ""}`}
+                  >
+                    <td className="px-3 py-2 text-center">
+                      <input
+                        type="checkbox"
+                        className="accent-blue-500 w-4 h-4 rounded"
+                        checked={isSelected}
+                        onChange={() => handleSelect(t.id)}
+                      />
+                    </td>
+                    <td className="px-3 py-2 text-xs font-semibold text-gray-700">#TC-{t.id}</td>
+                    <td className="px-3 py-2 text-sm text-gray-900 truncate max-w-[220px]">{t.title}</td>
+                    <td className="px-3 py-2">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${priorityColors[t.priority] ?? "bg-gray-100 text-gray-600"}`}>
+                        {t.priority}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${typeColors[t.type] ?? "bg-gray-100 text-gray-600"}`}>
+                        {t.type}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-sm text-gray-700">{t.customer?.name ?? "-"}</td>
+                    <td className="px-3 py-2 text-xs text-gray-500 whitespace-nowrap">{t.createdAt ? new Date(t.createdAt).toLocaleString() : "-"}</td>
+                    <td className="px-3 py-2 text-right">
+                      <button className="p-1 rounded-full hover:bg-gray-100">
+                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="text-gray-400">
+                          <circle cx="12" cy="5" r="1.5" />
+                          <circle cx="12" cy="12" r="1.5" />
+                          <circle cx="12" cy="19" r="1.5" />
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -193,4 +166,3 @@ const Ticket: React.FC = () => {
 };
 
 export default Ticket;
-

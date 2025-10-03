@@ -1,17 +1,18 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../services/api";
+import { toast } from "react-toastify";
 
 interface CreateTicketProps {
-  handleClose: () => void;
+  onAdd: (ticket: any) => void;
 }
 
 const priorities: ("Low" | "Medium" | "High")[] = ["Low", "Medium", "High"];
 const ticketTypes = ["Incident", "Question", "Suggestion", "Problem"];
 const requesters = ["Nguyen Van A", "Ngo Van B", "Hoang Thi C"];
 const assignees = ["Fikri Studio", "Support Team", "Dev Team"];
-const allTags = ["Support", "Order", "Payment", "Technical", "Feedback", "Bug", "Feature"];
 
-const CreateTicket: React.FC<CreateTicketProps> = ({ handleClose }) => {
+const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
   const [ticketName, setTicketName] = useState("Help Me Cancel My Order");
   const [message, setMessage] = useState("");
   const [priority, setPriority] = useState<"Low" | "Medium" | "High">("High");
@@ -42,6 +43,70 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ handleClose }) => {
     setFollowers(followers.filter((f) => f !== followerToRemove));
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Form submitted");
+    try {
+      // Check token first
+      const token = localStorage.getItem("token");
+      console.log("Current token:", token ? "exists" : "missing");
+
+      const payload = {
+        title: String(ticketName).trim(),
+        description: String(message || "").trim() || "No description",
+        customerId: 4,
+        type: ticketType.toUpperCase(),
+        priority: priority.toUpperCase(),
+        status: "OPEN"
+      };
+      
+      // Log payload với kiểu dữ liệu
+      console.log("Payload with types:", {
+        ...payload,
+        titleType: typeof payload.title,
+        descriptionType: typeof payload.description,
+        customerIdType: typeof payload.customerId,
+        typeType: typeof payload.type,
+        priorityType: typeof payload.priority,
+        statusType: typeof payload.status
+      });
+      console.log("Sending payload:", payload);
+      console.log("Making API call to /tickets");
+      
+      const res = await api.post("/tickets", payload);
+      console.log("API success response:", {
+        status: res.status,
+        statusText: res.statusText,
+        data: res.data
+      });
+      
+      if (res.data && !res.data.error) {
+        console.log("Adding new ticket to list");
+        onAdd(res.data.data);
+        toast.success("Tạo ticket thành công!");
+        setTicketName("");
+        setMessage("");
+        setPriority("High");
+        setTicketType("Incident");
+        setRequester(requesters[0]);
+        setAssignee(assignees[0]);
+        setTags(["Support", "Order"]);
+        setFollowers(["Eder Militao"]);
+        navigate("/ticket");
+      } else {
+        console.error("API returned error:", res.data);
+        toast.error(res.data?.message || "Tạo ticket thất bại!");
+      }
+    } catch (err: any) {
+      console.error("API call failed:", {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status
+      });
+      toast.error(err?.response?.data?.message || err.message || "Tạo ticket thất bại!");
+    }
+  };
+
   return (
     <div className="flex-1 p-6 bg-gray-50">
       <div className="bg-white p-8 rounded-lg shadow-md">
@@ -49,7 +114,7 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ handleClose }) => {
           Create New Ticket
         </h2>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <form id="ticket-form" onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column: Message */}
           <div className="lg:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -157,25 +222,25 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ handleClose }) => {
                 ))}
               </div>
             </div>
+            {/* Action Buttons */}
+            <div className="mt-8 col-span-3 flex justify-end gap-4">
+              <button
+                type="button"
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                onClick={() => navigate("/ticket")}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700"
+                onClick={handleSubmit}
+              >
+                Submit as New
+              </button>
+            </div>
           </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="mt-8 flex justify-end gap-4">
-          <button
-            onClick={handleClose}
-            className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => {
-            }}
-            className="px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700"
-          >
-            Submit as New
-          </button>
-        </div>
+        </form>
       </div>
     </div>
   );

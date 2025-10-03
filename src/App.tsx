@@ -1,109 +1,130 @@
-import React from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  useNavigate,
-  Navigate,
-} from "react-router-dom";
-import Sidebar from "./components/Sidebar";
-import Header from "./components/Header";
-import Charts from "./components/Charts";
+import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Ticket from "./components/Ticket";
 import CreateTicket from "./components/CreateTicket";
 import UpdateTicket from "./components/UpdateTicket";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import "./App.css";
-import Login from "./components/login";
+import Sidebar from "./components/Sidebar";
+import Header from "./components/Header";
+import Charts from "./components/Charts";
+import Login from "./components/Login";
+import api from "./services/api";
 
-const Dashboard: React.FC = () => (
-  <main className="flex-1">
-    <Header />
-    {/* Top Cards */}
-    <div className="grid grid-cols-4">
-      <div className="bg-white px-10 py-4 shadow">
-        <h3 className="text-gray-500">Created Tickets</h3>
-        <div className="flex items-center">
-          <p className="text-2xl font-bold">24,208</p>
-          <p className="text-sm text-red-500 ml-5 bg-red-200 rounded-lg px-2">
-            -5%
-          </p>
-        </div>
-        <p>compared to last month</p>
-      </div>
-      <div className="bg-white p-4 px-10 py-4 shadow">
-        <h3 className="text-gray-500">Unsolved Tickets</h3>
-        <div className="flex items-center">
-          <p className="text-2xl font-bold">4,564</p>
-          <p className="text-sm text-green-500 ml-5 bg-green-200 rounded-lg px-2">
-            +2%
-          </p>
-        </div>
-        <p>compared to last month</p>
-      </div>
-      <div className="bg-white p-4 px-10 py-4 shadow">
-        <h3 className="text-gray-500">Solved Tickets</h3>
-        <div className="flex items-center">
-          <p className="text-2xl font-bold">18,208</p>
-          <p className="text-sm text-green-500 ml-5 bg-green-200 rounded-lg px-2">
-            +8%
-          </p>
-        </div>
-        <p>compared to last month</p>
-      </div>
-      <div className="bg-white p-4 px-10 py-4 shadow">
-        <h3 className="text-gray-500">Average First Time Reply</h3>
-        <div className="flex items-center">
-          <p className="text-2xl font-bold">12:01 min</p>
-          <p className="text-sm text-green-500 ml-5 bg-green-200 rounded-lg px-2">
-            +8%
-          </p>
-        </div>
-        <p>compared to last month</p>
-      </div>
-    </div>
-    {/* Charts Row */}
-    <Charts />
-  </main>
-);
-
-const AppContent: React.FC = () => {
-  const navigate = useNavigate();
-
-  return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto">
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Navigate to="/ticket" />} />
-          <Route path="/ticket" element={<Ticket />} />
-          <Route
-            path="/addticket"
-            element={<CreateTicket handleClose={() => {}} />}
-          />
-          <Route path="/update-ticket/:id" element={<UpdateTicket />} />
-        </Routes>
-      </main>
-    </div>
-  );
+const PrivateRoute = ({
+  children,
+  isAuthenticated,
+}: {
+  children: React.ReactNode;
+  isAuthenticated: boolean;
+}) => {
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
 const App: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!localStorage.getItem("token"));
+  const [tickets, setTickets] = useState<any[]>([]);
+
+  // Fetch tickets
+  const fetchTickets = async () => {
+    try {
+      const res = await api.get("/tickets");
+      const sorted = res.data.data.sort(
+        (a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      );
+      setTickets(sorted);
+    } catch (err) {
+      console.error("Error fetching tickets:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchTickets();
+    }
+  }, [isAuthenticated]);
+
+  // Thêm mới ticket
+  const handleAddTicket = (newTicket: any) => {
+    console.log("handleAddTicket called with:", newTicket);
+    setTickets((prev) => {
+      console.log("Current tickets:", prev);
+      const updated = [newTicket, ...prev];
+      console.log("New tickets list:", updated);
+      return updated;
+    });
+  };
+
+  // Cập nhật ticket: luôn đưa ticket vừa update lên đầu danh sách
+  const handleUpdateTicket = (updatedTicket: any) => {
+    setTickets((prev) => [
+      updatedTicket,
+      ...prev.filter((t) => t.id !== updatedTicket.id)
+    ]);
+  };
+
+  // Xóa ticket
+  const handleDeleteTicket = (id: number) => {
+    setTickets((prev) => prev.filter((t) => t.id !== id));
+  };
+
   return (
     <Router>
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        pauseOnHover
-        draggable
-        theme="colored"
-      />
-      <AppContent />
+      <div className="flex h-screen bg-gray-50">
+        {isAuthenticated && <Sidebar />}
+        <main className="flex-1 overflow-y-auto">
+          <Routes>
+            <Route
+              path="/login"
+              element={<Login setIsAuthenticated={setIsAuthenticated} />}
+            />
+            <Route
+              path="/"
+              element={
+                <PrivateRoute isAuthenticated={isAuthenticated}>
+                  <Navigate to="/dashboard" />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute isAuthenticated={isAuthenticated}>
+                  <>
+                    <Header />
+                    <Charts />
+                  </>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/ticket"
+              element={
+                <PrivateRoute isAuthenticated={isAuthenticated}>
+                  <Ticket
+                    tickets={tickets}
+                    onDelete={handleDeleteTicket}
+                  />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/addticket"
+              element={
+                <PrivateRoute isAuthenticated={isAuthenticated}>
+                  <CreateTicket onAdd={handleAddTicket} />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/update-ticket/:id"
+              element={
+                <PrivateRoute isAuthenticated={isAuthenticated}>
+                  <UpdateTicket onUpdate={handleUpdateTicket} />
+                </PrivateRoute>
+              }
+            />
+          </Routes>
+        </main>
+      </div>
     </Router>
   );
 };

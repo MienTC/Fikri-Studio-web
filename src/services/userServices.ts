@@ -1,5 +1,5 @@
 // src/services/userService.ts
-import api from "../api";
+import api from "./api";
 
 export interface UserData {
   id: number;

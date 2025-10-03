@@ -1,5 +1,5 @@
 // src/services/ticketService.ts
-import api from "../api";
+import api from "./api";
 
 // ---------- Types ----------
 
@@ -107,7 +107,11 @@ export const ticketService = {
 
   deleteTicket: async (id: number): Promise<boolean> => {
     try {
-      await api.delete(`/tickets/${id}`);
+      const res = await api.delete(`/tickets/${id}`);
+      if (res.data && res.data.error) {
+        console.error('Delete ticket error:', res.data.message);
+        return false;
+      }
       return true;
     } catch (err) {
       console.error(err);

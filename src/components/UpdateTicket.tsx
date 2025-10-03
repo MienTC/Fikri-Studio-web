@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import { ticketService } from "../services/ticketService";
+import { toast } from "react-toastify";
 
-// --- Các mảng dữ liệu tĩnh (để làm ví dụ) ---
-// Trong thực tế, danh sách này nên được lấy từ API
 const customers = [
   { id: 4, name: "Công ty ABC" },
   { id: 5, name: "Tập đoàn XYZ" },
@@ -12,9 +11,8 @@ const customers = [
 const priorities: ("HIGH" | "MEDIUM" | "LOW")[] = ["HIGH", "MEDIUM", "LOW"];
 const ticketTypes = ["INCIDENT", "QUESTION", "SUGGESTION", "PROBLEM", "TASK", "OTHER"];
 
-const API_TOKEN = import.meta.env.VITE_API_TOKEN;
 
-const UpdateTicket: React.FC = () => {
+const UpdateTicket: React.FC<{ onUpdate?: (ticket: any) => void }> = ({ onUpdate }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -23,8 +21,8 @@ const UpdateTicket: React.FC = () => {
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<"HIGH" | "MEDIUM" | "LOW">("MEDIUM");
   const [ticketType, setTicketType] = useState("INCIDENT");
-  const [customerId, setCustomerId] = useState<number | string>(""); // State cho client/customer
-  const [createdAt, setCreatedAt] = useState(""); // State cho ngày tạo
+  const [customerId, setCustomerId] = useState<number | string>(""); 
+  const [createdAt, setCreatedAt] = useState(""); 
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,18 +34,19 @@ const UpdateTicket: React.FC = () => {
     const fetchTicketData = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(`/api/tickets/${id}`, {
-          headers: { Authorization: `Bearer ${API_TOKEN}` },
-        });
-        const ticket = response.data.data;
-        
+        const ticket = await ticketService.getTicketById(Number(id));
+        if (!ticket) {
+          setError("Ticket not found");
+          return;
+        }
+
         // Điền dữ liệu lấy được vào các state tương ứng
-        setSubject(ticket.title); // API trả về 'title', ta dùng nó cho 'subject'
-        setDescription(ticket.description);
-        setPriority(ticket.priority);
-        setTicketType(ticket.type);
-        setCustomerId(ticket.customer.id); // Lấy id của customer
-        setCreatedAt(ticket.createdAt); // Lấy ngày tạo
+        setSubject(ticket.title ?? "");
+        setDescription(ticket.description ?? "");
+        setPriority((ticket.priority as any) ?? "MEDIUM");
+        setTicketType(ticket.type ?? "INCIDENT");
+        setCustomerId(ticket.customer?.id ?? ""); 
+        setCreatedAt(ticket.createdAt ?? ""); 
 
       } catch (err) {
         setError("Failed to fetch ticket data.");
@@ -62,21 +61,24 @@ const UpdateTicket: React.FC = () => {
 
   // Hàm xử lý khi nhấn nút "Save Changes"
   const handleUpdate = async () => {
-    // Gom các dữ liệu đã chỉnh sửa để gửi đi
     const updatedData = {
-      title: subject, // Gửi đi với key là 'title' như API yêu cầu
-      description,
+      title: subject, 
       priority,
       type: ticketType,
-      customerId: Number(customerId), // Đảm bảo customerId là một con số
+      customerId: Number(customerId), 
     };
 
     try {
-      await axios.patch(`/api/tickets/${id}`, updatedData, {
-        headers: { Authorization: `Bearer ${API_TOKEN}` },
+      const updated = await ticketService.updateTicket(Number(id), {
+        ...updatedData,
+        type: ticketType as any,
       });
-      navigate("/ticket"); // Quay về trang danh sách sau khi thành công
-    } catch (err) {
+      if (!updated) throw new Error("Update failed");
+      toast.success("Cập nhật ticket thành công");
+      if (onUpdate) onUpdate(updated);
+      navigate("/ticket");
+    } catch (err: any) {
+      toast.error("Cập nhật ticket thất bại!");
       setError("Failed to update ticket.");
       console.error(err);
     }
@@ -109,7 +111,7 @@ const UpdateTicket: React.FC = () => {
 
           <div>
             <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
-            <input id="subject" type="text" className={`inputStyle p-2`} value={subject} onChange={(e) => setSubject(e.target.value)} />
+            <input id="subject" type="text" className={`${inputStyle} p-2`} value={subject} onChange={(e) => setSubject(e.target.value)} />
           </div>
           <div>
             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>

@@ -1,5 +1,5 @@
 // src/services/authService.ts
-import api from "../api";
+import api from "./api";
 import type { LoginDto, LoginData, ApiResponse } from "../types/authTypes";
 
 export const authService = {
