@@ -1,43 +1,49 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import loginImg from "../assets/img/loginIMG.jpg";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { login } from "../store/slices/authSlice";
+import { useAuth } from "../context/AuthProvider";
+import { authService } from "../services/authServices";
 import { toast } from "react-toastify";
 
 const Login: React.FC<{ setIsAuthenticated: (v: boolean) => void }> = ({
   setIsAuthenticated,
 }) => {
-  const dispatch = useAppDispatch();
-  const { loading } = useAppSelector((state) => state.auth);
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("Login attempt with:", { email, password });
     
     try {
-      const result = await dispatch(login({ email, password })).unwrap();
-      console.log("Login result:", result);
-      
-      if (result) {
-        const { access_token } = result;
-        localStorage.setItem("token", access_token); // Save token to localStorage
-        setIsAuthenticated(true);
-        toast.success("Đăng nhập thành công");
-        navigate("/dashboard");
-      } else {
+      setIsSubmitting(true);
+      try {
+        const loginData = await authService.login({ email, password });
+        if (loginData && loginData.user && loginData.access_token) {
+          login({ user: loginData.user, token: loginData.access_token });
+          setIsAuthenticated(true);
+          localStorage.setItem("isAuthenticated", "true");
+          toast.success("Đăng nhập thành công");
+          navigate("/dashboard");
+        } else {
+          setErrorMessage("Sai tài khoản hoặc mật khẩu!");
+          toast.error("Đăng nhập thất bại");
+        }
+      } catch (err) {
         setErrorMessage("Sai tài khoản hoặc mật khẩu!");
         toast.error("Đăng nhập thất bại");
       }
+      setIsSubmitting(false);
     } catch (err: any) {
       console.error("Login error details:", err);
       setErrorMessage("Tài khoản hoặc mật khẩu sai!");
       toast.error("Đăng nhập thất bại");
+      setIsSubmitting(false);
     }
   };
 
@@ -126,9 +132,9 @@ const Login: React.FC<{ setIsAuthenticated: (v: boolean) => void }> = ({
             <button
               type="submit"
               className="w-full bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white py-3 rounded-xl font-bold text-lg shadow-lg transition disabled:opacity-60"
-              disabled={loading}
+              disabled={isSubmitting}
             >
-              {loading ? "Đang đăng nhập..." : "Sign in"}
+              {isSubmitting ? "Đang đăng nhập..." : "Sign in"}
             </button>
 
             <div className="text-center text-sm text-gray-600">

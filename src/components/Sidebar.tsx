@@ -4,9 +4,14 @@ import {
   Plus,
   Search,
 } from "lucide-react";
+
 import { Link, useLocation } from "react-router-dom";
 
-const Sidebar = () => {
+interface SidebarProps {
+  onTicketClick?: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ onTicketClick }) => {
   const location = useLocation();
 
   return (
@@ -39,7 +44,7 @@ const Sidebar = () => {
           {/* Navigation */}
           <nav className="space-y-1 mb-8">
             <Link
-              to="/"
+              to="/dashboard"
               className={`flex items-center gap-3 px-3 py-2 text-sm rounded-md ${location.pathname === '/dashboard' ? 'text-blue-600 bg-blue-50 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -107,6 +112,7 @@ const Sidebar = () => {
             <Link
               to="/ticket"
               className={`flex items-center gap-3 px-3 py-2 text-sm rounded-md ${location.pathname === '/ticket' ? 'text-blue-600 bg-blue-50 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
+              onClick={onTicketClick}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -360,10 +366,10 @@ const Sidebar = () => {
                   <path d="M14.5 4l5.5 5.5" />
                 </svg>
               </div>
-              <button className="flex items-center gap-2 text-xs text-blue-600">
+              <Link to="/addticket" className="flex items-center gap-2 text-xs text-blue-600">
                 <Plus className="w-3 h-3" />
                 Add new
-              </button>
+              </Link>
             </div>
           </div>
 

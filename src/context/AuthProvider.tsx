@@ -12,14 +12,19 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [user, setUser] = useState<any>(null);
+  // Lấy user và token từ localStorage khi khởi tạo
+  const storedUser = localStorage.getItem("user");
+  const storedToken = localStorage.getItem("token");
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!storedToken);
+  const [user, setUser] = useState<any>(storedUser ? JSON.parse(storedUser) : null);
   const navigate = useNavigate();
 
   const login = (userData: any) => {
     setIsAuthenticated(true);
     setUser(userData);
-    localStorage.setItem("token", userData.token);
+    // Lưu cả user và token vào localStorage
+    localStorage.setItem("token", userData.token || userData.access_token);
+    localStorage.setItem("user", JSON.stringify(userData.user || userData));
     navigate("/dashboard");
   };
 
@@ -27,6 +32,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setIsAuthenticated(false);
     setUser(null);
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     navigate("/login");
   };
 

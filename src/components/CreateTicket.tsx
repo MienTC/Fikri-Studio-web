@@ -80,12 +80,14 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
     // Show loading toast
     const loadingToast = toast.loading("Đang tạo...");
     
+
     try {
       // Check token first
       const token = localStorage.getItem("token");
       console.log("Current token:", token ? "exists" : "missing");
-
-      if (user.role === "MEMBER") {
+      console.log("Current user object:", user);
+      if (!user || user.role === "MEMBER") {
+        toast.dismiss(loadingToast);
         toast.error("Bạn không có quyền tạo mới ticket.");
         return;
       }
@@ -117,6 +119,9 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
         statusText: res.statusText,
         data: res.data
       });
+      if (res.data && res.data.error) {
+        console.error("API error message:", res.data.error);
+      }
       
       if (res.data && !res.data.error) {
         console.log("Adding new ticket to list");
@@ -142,7 +147,8 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
       console.error("API call failed:", {
         message: error.message,
         response: error.response?.data,
-        status: error.response?.status
+        status: error.response?.status,
+        errorObject: error
       });
       toast.dismiss(loadingToast);
       toast.error("Tạo ticket thất bại");
