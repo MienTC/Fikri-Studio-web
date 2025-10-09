@@ -1,8 +1,8 @@
 Arguments: 
-  C:\Users\Dell\AppData\Local\nvm\v22.18.0\node.exe C:\Program Files (x86)\Yarn\bin\yarn.js add @tanstack/react-query
+  C:\Users\Dell\AppData\Local\nvm\v22.18.0\node.exe C:\Program Files (x86)\Yarn\bin\yarn.js add jwt-decode
 
 PATH: 
-  C:\Users\Dell\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\Dell\bin;C:\Program Files\Google\Chrome\Application;C:\Users\Dell\AppData\Local\Programs\cursor\resources\app\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\WINDOWS\System32\OpenSSH;C:\Users\Dell\AppData\Local\Microsoft\WindowsApps;C:\xampp\php;C:\ProgramData\ComposerSetup\bin;C:\Program Files\dotnet;C:\Users\Dell\AppData\Local\nvm;C:\nvm4w\nodejs;C:\Program Files (x86)\Yarn\bin;C:\Program Files\Git\cmd;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\WINDOWS\System32\OpenSSH;C:\Program Files\cursor\resources\app\bin;C:\Users\Dell\AppData\Local\Programs\Python\Python312\Scripts;C:\Users\Dell\AppData\Local\Programs\Python\Python312;C:\Users\Dell\AppData\Local\Programs\Python\Launcher;C:\Users\Dell\AppData\Local\Microsoft\WindowsApps;C:\Users\Dell\AppData\Local\Programs\Microsoft VS Code\bin;C:\msys64\ucrt64\bin;C:\Users\Dell\AppData\Roaming\Composer\vendor\bin;C:\Users\Dell\AppData\Local\GitHubDesktop\bin;C:\Users\Dell\AppData\Local\Programs\cursor\resources\app\bin;C:\Users\Dell\AppData\Roaming\npm;C:\Users\Dell\AppData\Local\nvm;C:\nvm4w\nodejs;C:\Users\Dell\AppData\Local\Yarn\bin;C:\Program Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl
+  C:\Users\Dell\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\Dell\bin;C:\Users\Dell\AppData\Local\Programs\cursor\resources\app\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\WINDOWS\System32\OpenSSH;C:\Users\Dell\AppData\Local\Microsoft\WindowsApps;C:\xampp\php;C:\ProgramData\ComposerSetup\bin;C:\Program Files\dotnet;C:\Users\Dell\AppData\Local\nvm;C:\nvm4w\nodejs;C:\Program Files (x86)\Yarn\bin;C:\Program Files\Git\cmd;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\WINDOWS\System32\OpenSSH;C:\Program Files\cursor\resources\app\bin;C:\Users\Dell\AppData\Local\Programs\Python\Python312\Scripts;C:\Users\Dell\AppData\Local\Programs\Python\Python312;C:\Users\Dell\AppData\Local\Programs\Python\Launcher;C:\Users\Dell\AppData\Local\Microsoft\WindowsApps;C:\Users\Dell\AppData\Local\Programs\Microsoft VS Code\bin;C:\msys64\ucrt64\bin;C:\Users\Dell\AppData\Roaming\Composer\vendor\bin;C:\Users\Dell\AppData\Local\GitHubDesktop\bin;C:\Users\Dell\AppData\Local\Programs\cursor\resources\app\bin;C:\Users\Dell\AppData\Roaming\npm;C:\Users\Dell\AppData\Local\nvm;C:\nvm4w\nodejs;C:\Users\Dell\AppData\Local\Yarn\bin;C:\Users\Dell\AppData\Roaming\Code\User\globalStorage\github.copilot-chat\debugCommand;C:\Program Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl
 
 Yarn version: 
   1.22.4
@@ -14,7 +14,7 @@ Platform:
   win32 x64
 
 Trace: 
-  Error: EPERM: operation not permitted, unlink 'E:\Dev\Fikri-Studio-web\node_modules\@esbuild\win32-x64\esbuild.exe'
+  Error: EPERM: operation not permitted, unlink 'E:\Dev\Fikri-Studio-web\node_modules\lightningcss-win32-x64-msvc\lightningcss.win32-x64-msvc.node'
 
 npm manifest: 
   {

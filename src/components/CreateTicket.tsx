@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { toast } from "react-toastify";
+import { useAuth } from '../context/AuthProvider';
 
 interface Ticket {
   id: number;
@@ -25,6 +26,7 @@ const requesters = ["Nguyen Van A", "Ngo Van B", "Hoang Thi C"];
 const assignees = ["Fikri Studio", "Support Team", "Dev Team"];
 
 const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
+  const { user } = useAuth();
   const [ticketName, setTicketName] = useState("Help Me Cancel My Order");
   const [message, setMessage] = useState("");
   const [priority, setPriority] = useState<"Low" | "Medium" | "High">("High");
@@ -34,8 +36,24 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
   const [tags, setTags] = useState<string[]>(["Support", "Order"]);
   const [tagInput, setTagInput] = useState("");
   const [followers, setFollowers] = useState(["Eder Militao"]);
+  const [customerId, setCustomerId] = useState<number | null>(4);
+  const [customers, setCustomers] = useState<{id: number, name: string, email: string}[]>([]);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    async function fetchCustomers() {
+      try {
+        const res = await api.get("/customers");
+        if (res.data && Array.isArray(res.data.data)) {
+          setCustomers(res.data.data);
+        }
+      } catch (err) {
+        setCustomers([]);
+      }
+    }
+    fetchCustomers();
+  }, []);
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim()) {
@@ -58,7 +76,7 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Form submitted");
-    
+
     // Show loading toast
     const loadingToast = toast.loading("Đang tạo...");
     
@@ -67,10 +85,15 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
       const token = localStorage.getItem("token");
       console.log("Current token:", token ? "exists" : "missing");
 
+      if (user.role === "MEMBER") {
+        toast.error("Bạn không có quyền tạo mới ticket.");
+        return;
+      }
+
       const payload = {
         title: String(ticketName).trim(),
         description: String(message || "").trim() || "No description",
-        customerId: 4,
+        customerId: customerId ?? 4,
         type: ticketType.toUpperCase(),
         priority: priority.toUpperCase()
         // Removed status field temporarily due to database schema issue
@@ -168,22 +191,15 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-              <div className="flex gap-2">
+              <select
+                className="w-full border border-gray-300 rounded-lg p-2 bg-white focus:ring-indigo-500 focus:border-indigo-500"
+                value={priority}
+                onChange={e => setPriority(e.target.value as "Low" | "Medium" | "High")}
+              >
                 {priorities.map((p) => (
-                  <button
-                    key={p}
-                    className={`flex-1 px-3 py-2 rounded-md border text-sm font-medium flex items-center justify-center transition-all ${
-                      priority === p
-                        ? "bg-green-50 border-green-500 text-green-800 shadow-sm"
-                        : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
-                    }`}
-                    onClick={() => setPriority(p)}
-                  >
-                    <span className={`inline-block w-2 h-2 rounded-full mr-2 ${p === 'High' ? 'bg-red-500' : p === 'Medium' ? 'bg-yellow-500' : 'bg-green-500'}`}></span>
-                    {p}
-                  </button>
+                  <option key={p} value={p}>{p}</option>
                 ))}
-              </div>
+              </select>
             </div>
 
             <div>
@@ -241,6 +257,20 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
                   </span>
                 ))}
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Client</label>
+              <select
+                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500"
+                value={customerId ?? ""}
+                onChange={e => setCustomerId(Number(e.target.value))}
+              >
+                <option value="" disabled>Chọn khách hàng...</option>
+                {customers.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
             </div>
           </div>
           

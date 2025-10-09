@@ -8,6 +8,7 @@ import { Link, useLocation } from "react-router-dom";
 
 const Sidebar = () => {
   const location = useLocation();
+
   return (
     <div className="hidden lg:block">
       <div className="w-64 h-full bg-white border-r border-gray-200 flex flex-col">
@@ -39,8 +40,7 @@ const Sidebar = () => {
           <nav className="space-y-1 mb-8">
             <Link
               to="/"
-              className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md ${location.pathname === '/' ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:bg-gray-50'}`}
-            >
+              className={`flex items-center gap-3 px-3 py-2 text-sm rounded-md ${location.pathname === '/dashboard' ? 'text-blue-600 bg-blue-50 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}            >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -72,9 +72,9 @@ const Sidebar = () => {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 className="icon icon-tabler icons-tabler-outline icon-tabler-message-circle"
               >
                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -93,9 +93,9 @@ const Sidebar = () => {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 className="icon icon-tabler icons-tabler-outline icon-tabler-bell"
               >
                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -139,9 +139,9 @@ const Sidebar = () => {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 className="icon icon-tabler icons-tabler-outline icon-tabler-bulb"
               >
                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -162,9 +162,9 @@ const Sidebar = () => {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 className="icon icon-tabler icons-tabler-outline icon-tabler-users"
               >
                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -186,9 +186,9 @@ const Sidebar = () => {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 className="icon icon-tabler icons-tabler-outline icon-tabler-mail-forward"
               >
                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -210,9 +210,9 @@ const Sidebar = () => {
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 className="icon icon-tabler icons-tabler-outline icon-tabler-flag-2"
               >
                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -236,9 +236,9 @@ const Sidebar = () => {
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                   className="icon icon-tabler icons-tabler-outline icon-tabler-phone"
                 >
                   <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -257,9 +257,9 @@ const Sidebar = () => {
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                   className="icon icon-tabler icons-tabler-outline icon-tabler-message-heart"
                 >
                   <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -304,9 +304,9 @@ const Sidebar = () => {
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                   className="ml-auto icon icon-tabler icons-tabler-outline icon-tabler-pinned-off"
                 >
                   <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -326,9 +326,9 @@ const Sidebar = () => {
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                   className="ml-auto icon icon-tabler icons-tabler-outline icon-tabler-pinned-off"
                 >
                   <path stroke="none" d="M0 0h24v24H0z" fill="none" />
@@ -348,9 +348,9 @@ const Sidebar = () => {
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                   className="ml-auto icon icon-tabler icons-tabler-outline icon-tabler-pinned-off"
                 >
                   <path stroke="none" d="M0 0h24v24H0z" fill="none" />

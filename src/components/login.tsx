@@ -25,6 +25,8 @@ const Login: React.FC<{ setIsAuthenticated: (v: boolean) => void }> = ({
       console.log("Login result:", result);
       
       if (result) {
+        const { access_token } = result;
+        localStorage.setItem("token", access_token); // Save token to localStorage
         setIsAuthenticated(true);
         toast.success("Đăng nhập thành công");
         navigate("/dashboard");
