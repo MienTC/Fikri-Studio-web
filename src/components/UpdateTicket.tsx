@@ -68,17 +68,22 @@ const UpdateTicket: React.FC<{ onUpdate?: (ticket: any) => void }> = ({ onUpdate
       customerId: Number(customerId), 
     };
 
+    // Show loading toast
+    const loadingToast = toast.loading("Đang cập nhật...");
+
     try {
       const updated = await ticketService.updateTicket(Number(id), {
         ...updatedData,
         type: ticketType as any,
       });
       if (!updated) throw new Error("Update failed");
-      toast.success("Cập nhật ticket thành công");
+      toast.dismiss(loadingToast);
+      toast.success("Cập nhật thành công");
       if (onUpdate) onUpdate(updated);
       navigate("/ticket");
     } catch (err: any) {
-      toast.error("Cập nhật ticket thất bại!");
+      toast.dismiss(loadingToast);
+      toast.error("Cập nhật thất bại");
       setError("Failed to update ticket.");
       console.error(err);
     }

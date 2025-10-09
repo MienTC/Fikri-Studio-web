@@ -17,8 +17,22 @@ const typeColors: Record<string, string> = {
   OTHER: "bg-gray-100 text-gray-600",
 };
 
+interface TicketData {
+  id: number;
+  title: string;
+  description?: string;
+  status: string;
+  priority: string;
+  type: string;
+  customer?: {
+    name: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 interface TicketProps {
-  tickets: any[];
+  tickets: TicketData[];
   onDelete: (id: number) => void;
 }
 
@@ -46,18 +60,31 @@ const Ticket: React.FC<TicketProps> = ({ tickets = [], onDelete }) => {
   const handleDeleteSelected = async () => {
     let success = 0;
     let fail = 0;
+    const failedTickets: string[] = [];
+    
+    // Show loading toast
+    const loadingToast = toast.loading(`Đang xóa ${selectedIds.length}...`);
+    
     for (const id of selectedIds) {
-      const ok = await ticketService.deleteTicket(id);
-      if (ok) {
+      const result = await ticketService.deleteTicket(id);
+      if (result.success) {
         onDelete(id);
         success++;
       } else {
         fail++;
+        failedTickets.push(`#TC-${id}: ${result.message || 'Lỗi không xác định'}`);
       }
     }
     setSelectedIds([]);
-    if (success > 0) toast.success(`Đã xóa ${success} ticket thành công!`);
-    if (fail > 0) toast.error(`Xóa ${fail} ticket thất bại! (Có thể ticket không tồn tại hoặc backend không cho xóa)`);
+    
+    // Dismiss loading toast
+    toast.dismiss(loadingToast);
+    
+    if (success > 0) toast.success(`Xóa ${success} thành công`);
+    if (fail > 0) {
+      toast.error(`Xóa ${fail} thất bại`);
+      console.error('Failed tickets:', failedTickets);
+    }
   };
 
   const handleUpdateSelected = () => {
@@ -67,8 +94,9 @@ const Ticket: React.FC<TicketProps> = ({ tickets = [], onDelete }) => {
   };
 
   return (
-    <div className="flex-1 p-6 bg-gray-50">
-      <div className="max-w-6xl mx-auto">
+    <div className="flex-1 flex flex-col bg-gray-50 overflow-hidden">
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold">Tickets</h1>
           <button
@@ -95,7 +123,8 @@ const Ticket: React.FC<TicketProps> = ({ tickets = [], onDelete }) => {
         )}
 
         <div className="bg-white shadow rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-3 py-2">
@@ -159,6 +188,8 @@ const Ticket: React.FC<TicketProps> = ({ tickets = [], onDelete }) => {
               })}
             </tbody>
           </table>
+          </div>
+        </div>
         </div>
       </div>
     </div>

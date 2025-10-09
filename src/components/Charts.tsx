@@ -39,10 +39,10 @@ const channelData = [
 
 const Charts = () => {
   return (
-    <div>
-      <div className="grid grid-cols-[repeat(7,1fr)]">
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
         {/* Bar Chart */}
-        <div className="bg-white p-8 shadow border-1 col-span-4 border-gray-400">
+        <div className="bg-white p-4 lg:p-8 shadow border border-gray-200 lg:col-span-4">
           <div className="flex justify-between">
             <h3 className="mb-4 font-semibold">Average Tickets Created</h3>
             <p>Dec 1-7</p>
@@ -66,7 +66,7 @@ const Charts = () => {
         </div>
 
         {/* Pie Chart */}
-        <div className="bg-white p-8 col-span-3 border-1 border-gray-300  shadow">
+        <div className="bg-white p-4 lg:p-8 shadow border border-gray-200 lg:col-span-3">
           <h3 className="mb-4 font-semibold">Ticket By First Reply Time</h3>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
@@ -87,9 +87,9 @@ const Charts = () => {
           </ResponsiveContainer>
         </div>
       </div>
-      <div className="grid grid-cols-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Ticket by Channels */}
-        <div className="bg-white p-8 shadow">
+        <div className="bg-white p-4 lg:p-8 shadow">
           <h3 className="mb-4 font-semibold">Ticket by Channels</h3>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
@@ -116,7 +116,7 @@ const Charts = () => {
         </div>
 
         {/* Customer Satisfaction */}
-        <div className="bg-white p-8 shadow">
+        <div className="bg-white p-4 lg:p-8 shadow">
           <h3 className="mb-4 font-semibold">Customer Satisfaction</h3>
           <div className="grid grid-cols-2">
                 <div>

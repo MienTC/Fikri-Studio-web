@@ -21,12 +21,20 @@ const initialState: AuthState = {
 export const login = createAsyncThunk<LoginData | null, LoginDto>(
   "auth/login",
   async (data, thunkAPI) => {
-    const res = await authService.login(data);
-    if (!res) return thunkAPI.rejectWithValue("Login failed");
+    try {
+      const res = await authService.login(data);
+      if (!res) {
+        return thunkAPI.rejectWithValue("Login failed - no data returned");
+      }
 
-    localStorage.setItem("access_token", res.access_token);
+      localStorage.setItem("token", res.access_token);
+      localStorage.setItem("user", JSON.stringify(res.user));
 
-    return res;
+      return res;
+    } catch (error: any) {
+      console.error("Login thunk error:", error);
+      return thunkAPI.rejectWithValue(error.message || "Login failed");
+    }
   }
 );
 

@@ -6,33 +6,51 @@ import UpdateTicket from "./components/UpdateTicket";
 import Sidebar from "./components/Sidebar";
 import Header from "./components/Header";
 import Charts from "./components/Charts";
-import Login from "./components/Login";
+import Login from "./components/login";
 import api from "./services/api";
 
-const PrivateRoute = ({
-  children,
-  isAuthenticated,
-}: {
-  children: React.ReactNode;
-  isAuthenticated: boolean;
-}) => {
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
-};
+interface TicketData {
+  id: number;
+  title: string;
+  description?: string;
+  status: string;
+  priority: string;
+  type: string;
+  customer?: {
+    name: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!localStorage.getItem("token"));
-  const [tickets, setTickets] = useState<any[]>([]);
+  const [tickets, setTickets] = useState<TicketData[]>([]);
 
   // Fetch tickets
   const fetchTickets = async () => {
     try {
+      console.log("Fetching tickets...");
       const res = await api.get("/tickets");
-      const sorted = res.data.data.sort(
-        (a: any, b: any) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-      );
-      setTickets(sorted);
+      console.log("API response:", res.data);
+      
+      if (res.data && res.data.data) {
+        const sorted = res.data.data.sort(
+          (a: TicketData, b: TicketData) => {
+            const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+            const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+            return dateB - dateA;
+          }
+        );
+        console.log("Sorted tickets:", sorted);
+        setTickets(sorted);
+      } else {
+        console.log("No tickets data found in response");
+        setTickets([]);
+      }
     } catch (err) {
       console.error("Error fetching tickets:", err);
+      setTickets([]);
     }
   };
 
@@ -43,7 +61,7 @@ const App: React.FC = () => {
   }, [isAuthenticated]);
 
   // Thêm mới ticket
-  const handleAddTicket = (newTicket: any) => {
+  const handleAddTicket = (newTicket: TicketData) => {
     console.log("handleAddTicket called with:", newTicket);
     setTickets((prev) => {
       console.log("Current tickets:", prev);
@@ -54,7 +72,7 @@ const App: React.FC = () => {
   };
 
   // Cập nhật ticket: luôn đưa ticket vừa update lên đầu danh sách
-  const handleUpdateTicket = (updatedTicket: any) => {
+  const handleUpdateTicket = (updatedTicket: TicketData) => {
     setTickets((prev) => [
       updatedTicket,
       ...prev.filter((t) => t.id !== updatedTicket.id)
@@ -77,11 +95,19 @@ const App: React.FC = () => {
           path="/*"
           element={
             isAuthenticated ? (
-              <div className="flex h-screen bg-gray-50">
+              <div className="flex h-screen bg-gray-50 overflow-hidden">
                 <Sidebar />
-                <main className="flex-1 overflow-y-auto">
+                <main className="flex-1 flex flex-col overflow-hidden">
+                  {/* Mobile menu button */}
+                  <div className="lg:hidden bg-white border-b border-gray-200 p-4">
+                    <button className="text-gray-600 hover:text-gray-900">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                      </svg>
+                    </button>
+                  </div>
                   <Routes>
-                    <Route path="dashboard" element={<><Header /><Charts /></>} />
+                    <Route path="dashboard" element={<><Header /><div className="flex-1 overflow-y-auto p-6"><Charts /></div></>} />
                     <Route path="ticket" element={<Ticket tickets={tickets} onDelete={handleDeleteTicket} />} />
                     <Route path="addticket" element={<CreateTicket onAdd={handleAddTicket} />} />
                     <Route path="update-ticket/:id" element={<UpdateTicket onUpdate={handleUpdateTicket} />} />

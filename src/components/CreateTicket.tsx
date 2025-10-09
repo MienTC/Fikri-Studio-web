@@ -3,8 +3,20 @@ import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { toast } from "react-toastify";
 
+interface Ticket {
+  id: number;
+  title: string;
+  description: string;
+  customerId: number;
+  type: string;
+  priority: string;
+  status: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 interface CreateTicketProps {
-  onAdd: (ticket: any) => void;
+  onAdd: (ticket: Ticket) => void;
 }
 
 const priorities: ("Low" | "Medium" | "High")[] = ["Low", "Medium", "High"];
@@ -46,6 +58,10 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Form submitted");
+    
+    // Show loading toast
+    const loadingToast = toast.loading("Đang tạo...");
+    
     try {
       // Check token first
       const token = localStorage.getItem("token");
@@ -56,8 +72,8 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
         description: String(message || "").trim() || "No description",
         customerId: 4,
         type: ticketType.toUpperCase(),
-        priority: priority.toUpperCase(),
-        status: "OPEN"
+        priority: priority.toUpperCase()
+        // Removed status field temporarily due to database schema issue
       };
       
       // Log payload với kiểu dữ liệu
@@ -67,8 +83,7 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
         descriptionType: typeof payload.description,
         customerIdType: typeof payload.customerId,
         typeType: typeof payload.type,
-        priorityType: typeof payload.priority,
-        statusType: typeof payload.status
+        priorityType: typeof payload.priority
       });
       console.log("Sending payload:", payload);
       console.log("Making API call to /tickets");
@@ -83,7 +98,8 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
       if (res.data && !res.data.error) {
         console.log("Adding new ticket to list");
         onAdd(res.data.data);
-        toast.success("Tạo ticket thành công!");
+        toast.dismiss(loadingToast);
+        toast.success("Tạo ticket thành công");
         setTicketName("");
         setMessage("");
         setPriority("High");
@@ -95,21 +111,25 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
         navigate("/ticket");
       } else {
         console.error("API returned error:", res.data);
-        toast.error(res.data?.message || "Tạo ticket thất bại!");
+        toast.dismiss(loadingToast);
+        toast.error("Tạo ticket thất bại");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { message?: string; response?: { data?: { message?: string }; status?: number } };
       console.error("API call failed:", {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
       });
-      toast.error(err?.response?.data?.message || err.message || "Tạo ticket thất bại!");
+      toast.dismiss(loadingToast);
+      toast.error("Tạo ticket thất bại");
     }
   };
 
   return (
-    <div className="flex-1 p-6 bg-gray-50">
-      <div className="bg-white p-8 rounded-lg shadow-md">
+    <div className="flex-1 flex flex-col bg-gray-50 overflow-hidden">
+      <div className="flex-1 overflow-y-auto p-6">
+        <div className="bg-white p-4 lg:p-8 rounded-lg shadow-md max-w-7xl mx-auto">
         <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">
           Create New Ticket
         </h2>
@@ -222,25 +242,26 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
                 ))}
               </div>
             </div>
-            {/* Action Buttons */}
-            <div className="mt-8 col-span-3 flex justify-end gap-4">
-              <button
-                type="button"
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-                onClick={() => navigate("/ticket")}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700"
-                onClick={handleSubmit}
-              >
-                Submit as New
-              </button>
-            </div>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="mt-8 col-span-3 flex justify-end gap-4">
+            <button
+              type="button"
+              className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+              onClick={() => navigate("/ticket")}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700"
+            >
+              Submit as New
+            </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );

@@ -4,7 +4,6 @@ import loginImg from "../assets/img/loginIMG.jpg";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { login } from "../store/slices/authSlice";
 import { toast } from "react-toastify";
-import api from "../services/api"; 
 
 const Login: React.FC<{ setIsAuthenticated: (v: boolean) => void }> = ({
   setIsAuthenticated,
@@ -19,27 +18,24 @@ const Login: React.FC<{ setIsAuthenticated: (v: boolean) => void }> = ({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log("Login attempt with:", { email, password });
+    
     try {
-      // Dùng api thay cho axios
-      const res = await api.post("/auth/login", { email, password });
-
-      if (res.status === 201 && res.data?.data?.access_token) {
-        const token = res.data.data.access_token;
-        const user = res.data.data.user;
-
+      const result = await dispatch(login({ email, password })).unwrap();
+      console.log("Login result:", result);
+      
+      if (result) {
         setIsAuthenticated(true);
-        localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(user));
-
-        dispatch(login({ email, password }));
-        toast.success("Login successfully");
+        toast.success("Đăng nhập thành công");
         navigate("/dashboard");
       } else {
         setErrorMessage("Sai tài khoản hoặc mật khẩu!");
+        toast.error("Đăng nhập thất bại");
       }
     } catch (err: any) {
+      console.error("Login error details:", err);
       setErrorMessage("Tài khoản hoặc mật khẩu sai!");
-      console.error("Login error:", err?.response?.data || err);
+      toast.error("Đăng nhập thất bại");
     }
   };
 

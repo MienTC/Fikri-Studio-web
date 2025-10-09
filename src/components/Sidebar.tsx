@@ -9,9 +9,9 @@ import { Link, useLocation } from "react-router-dom";
 const Sidebar = () => {
   const location = useLocation();
   return (
-    <div>
-      <div className="w-64 bg-white border-r border-gray-200">
-        <div className="p-4">
+    <div className="hidden lg:block">
+      <div className="w-64 h-full bg-white border-r border-gray-200 flex flex-col">
+        <div className="p-4 flex-1 flex flex-col">
           <div className="flex items-center gap-2 mb-2 border-b-1 p-2 border-gray-100">
             <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
               <span className="text-white text-sm font-bold">FS</span>

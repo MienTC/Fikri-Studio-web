@@ -105,17 +105,23 @@ export const ticketService = {
     }
   },
 
-  deleteTicket: async (id: number): Promise<boolean> => {
+  deleteTicket: async (id: number): Promise<{ success: boolean; message?: string }> => {
     try {
       const res = await api.delete(`/tickets/${id}`);
       if (res.data && res.data.error) {
         console.error('Delete ticket error:', res.data.message);
-        return false;
+        return { 
+          success: false, 
+          message: res.data.message || 'Không thể xóa ticket do ràng buộc dữ liệu' 
+        };
       }
-      return true;
-    } catch (err) {
+      return { success: true };
+    } catch (err: any) {
       console.error(err);
-      return false;
+      return { 
+        success: false, 
+        message: err?.response?.data?.message || 'Lỗi khi xóa ticket' 
+      };
     }
   },
 };
