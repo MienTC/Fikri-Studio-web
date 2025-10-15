@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useTickets, useDeleteTicket } from "../hooks/useTickets";
-import { useAuth } from "../context/AuthProvider";
+import { useAuth } from "../features/auth/controller/AuthProvider";
 
 const priorityColors: Record<string, string> = {
   HIGH: "bg-red-100 text-red-600",
@@ -19,22 +19,12 @@ const typeColors: Record<string, string> = {
   OTHER: "bg-gray-100 text-gray-600",
 };
 
-interface TicketData {
-  id: number;
-  title: string;
-  description?: string;
-  status: string;
-  priority: string;
-  type: string;
-  customer?: { name: string };
-  createdAt?: string;
-  updatedAt?: string;
-}
+// TicketData is defined in services; local interface removed to avoid unused warnings
 
 const Ticket: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: tickets = [], isLoading, error } = useTickets();
+  const { data: tickets = [] } = useTickets();
   const deleteTicketMutation = useDeleteTicket();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 

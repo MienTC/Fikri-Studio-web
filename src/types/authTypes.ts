@@ -1,9 +1,10 @@
 export interface User {
   id: number;
   name: string;
+  fullname?: string;
   email: string;
   role: "ADMIN" | "MEMBER";
-  avatar: string | null;
+  avatar?: string | null;
   createdAt: string;
   updatedAt: string;
 }

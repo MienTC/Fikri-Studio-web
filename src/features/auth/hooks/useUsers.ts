@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { userService } from "../services/userServices";
-import type { UserData, CreateUserDto } from "../services/userServices";
+import { userService } from "../controller/userServices";
+import type { UserData, CreateUserDto } from "../controller/userServices";
 
 // Query Keys
 export const USER_QUERY_KEYS = {

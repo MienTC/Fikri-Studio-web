@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useUsers, useDeleteUser } from "../hooks/useUsers";
-import { useAuth } from "../context/AuthProvider";
+import { useAuth } from "../controller/AuthProvider";
 
 const UserManagement: React.FC = () => {
   const { user } = useAuth();
@@ -99,7 +99,6 @@ const UserManagement: React.FC = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-            <p className="text-gray-600">Manage system users and their roles</p>
           </div>
           <div className="flex gap-3">
             {selectedIds.length > 0 && (
@@ -183,13 +182,18 @@ const UserManagement: React.FC = () => {
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {user.name}
+                            {user.fullname || user.name}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {user.email}
+                      {user.role === "ADMIN" && (
+                        <div className="text-xs text-gray-500 mt-1">
+                          Password: {user.password || "Not set"}
+                        </div>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span

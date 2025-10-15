@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../services/api";
 import { toast } from "react-toastify";
-import { useAuth } from "../context/AuthProvider";
+import { useAuth } from "../features/auth/controller/AuthProvider";
 import type { CreateTicketDto, TicketType, TicketPriority } from "../services/ticketService";
 import { ticketService } from "../services/ticketService";
 
@@ -13,7 +13,6 @@ interface CreateTicketProps {
 
 const priorities: ("Low" | "Medium" | "High")[] = ["Low", "Medium", "High"];
 const ticketTypes = ["Incident", "Question", "Suggestion", "Problem"];
-const requesters = ["Nguyen Van A", "Ngo Van B", "Hoang Thi C"];
 const assignees = ["Fikri Studio", "Support Team", "Dev Team"];
 
 const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
@@ -185,8 +184,10 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
                 value={requester}
                 onChange={(e) => setRequester(e.target.value)}
               >
-                {requesters.map((r) => (
-                  <option key={r}>{r}</option>
+                {customers.map((c: { id: number; name: string }) => (
+                  <option key={c.id} value={c.name}>
+                    {c.name}
+                  </option>
                 ))}
               </select>
             </div>

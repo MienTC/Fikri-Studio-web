@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ticketService } from "../services/ticketService";
 import { toast } from "react-toastify";
-import { useAuth } from "../context/AuthProvider";
+import { useAuth } from "../features/auth/controller/AuthProvider";
 
 const customers = [
   { id: 4, name: "Công ty ABC" },

@@ -1,4 +1,4 @@
-import type { ApiResponse } from "../types/authTypes";
+import type { ApiResponse } from "../../types/authTypes";
 
 export async function callApi<T>(
   apiCall: () => Promise<{ data: ApiResponse<T> }>

@@ -3,7 +3,9 @@ import api from "./api";
 export interface UserData {
   id: number;
   name: string;
+  fullname?: string;
   email: string;
+  password?: string; // For admin to view
   role: "ADMIN" | "MEMBER";
   avatar?: string | null;
   createdAt: string;

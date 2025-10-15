@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useCreateUser } from "../hooks/useUsers";
-import { useAuth } from "../context/AuthProvider";
+import { useAuth } from "../controller/AuthProvider";
 
 const CreateUser: React.FC = () => {
   const { user } = useAuth();

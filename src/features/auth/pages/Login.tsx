@@ -1,13 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import loginImg from "../assets/img/loginIMG.jpg";
+import loginImg from "../../../../public/assets/login.jpg";
 import { useAuth } from "../context/AuthProvider";
-import { authService } from "../services/authServices";
+import { authService } from "../../../services/authServices";
 import { toast } from "react-toastify";
 
-const Login: React.FC<{ setIsAuthenticated: (v: boolean) => void }> = ({
-  setIsAuthenticated,
-}) => {
+const Login: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -26,8 +24,6 @@ const Login: React.FC<{ setIsAuthenticated: (v: boolean) => void }> = ({
         const loginData = await authService.login({ email, password });
         if (loginData && loginData.user && loginData.access_token) {
           login(loginData);
-          setIsAuthenticated(true);
-          localStorage.setItem("isAuthenticated", "true");
           toast.success("Đăng nhập thành công");
           navigate("/dashboard");
         } else {

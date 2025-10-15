@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useUser, useUpdateUser } from "../hooks/useUsers";
-import { useAuth } from "../context/AuthProvider";
+import { useAuth } from "../controller/AuthProvider";
 
 const UpdateUser: React.FC = () => {
   const { user: currentUser } = useAuth();

@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthProvider";
+import { useAuth } from "../../features/auth/controller/AuthProvider";
 
 interface SidebarProps {
   onTicketClick?: () => void;
@@ -16,6 +16,12 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ onTicketClick }) => {
   const location = useLocation();
   const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    if (window.confirm("Bạn có muốn đăng xuất không?")) {
+      logout();
+    }
+  };
 
   return (
     <div className="hidden lg:block">
@@ -26,19 +32,26 @@ const Sidebar: React.FC<SidebarProps> = ({ onTicketClick }) => {
               {user?.avatar ? (
                 <img
                   src={user.avatar}
-                  alt="Avatar"
+                  alt={user?.name || "Avatar"}
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <span className="text-white text-sm font-bold">
-                  {user?.email?.charAt(0).toUpperCase() || "U"}
+                  {(user?.name || "U").charAt(0).toUpperCase()}
                 </span>
               )}
             </div>
-            <div>
-              <h1 className="font-semibold text-gray-900">{user?.email || "User"}</h1>
+            <div className="flex-1">
+              <h1 className="font-semibold text-gray-900">{user?.name || user?.fullname || "User"}</h1>
               <p className="text-xs text-gray-500">{user?.role || "Agent"}</p>
             </div>
+            <button
+              onClick={handleLogout}
+              className="text-gray-500 hover:text-gray-700 p-1 rounded hover:bg-gray-100"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
 
           {/* Search */}
@@ -170,9 +183,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onTicketClick }) => {
               </svg>{" "}
               Knowledge Base
             </a>
-            <a
-              href="#"
-              className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md"
+            <Link
+              to="/users"
+              className={`flex items-center gap-3 px-3 py-2 text-sm rounded-md ${location.pathname === '/users' ? 'text-blue-600 bg-blue-50 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -192,8 +205,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onTicketClick }) => {
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                 <path d="M21 21v-2a4 4 0 0 0 -3 -3.85" />
               </svg>{" "}
-              Customer
-            </a>
+              Users
+            </Link>
             <a
               href="#"
               className="flex items-center gap-3 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md"
@@ -380,22 +393,15 @@ const Sidebar: React.FC<SidebarProps> = ({ onTicketClick }) => {
                 </svg>
               </div>
             {user?.role === "ADMIN" && (
-              <Link to="/addticket" className="flex items-center gap-2 text-xs text-blue-600">
+              <Link to="/users/create" className="flex items-center gap-2 text-xs text-blue-600">
                 <Plus className="w-3 h-3" />
-                Add new
+                Add new user
               </Link>
             )}
             </div>
           </div>
 
           <div className="mt-auto space-y-2">
-            <button
-              onClick={logout}
-              className="flex items-center gap-2 text-xs text-gray-600 w-full px-3 py-2 hover:bg-gray-50 rounded-md"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
             <button className="flex items-center gap-2 text-xs text-gray-600 w-full px-3 py-2 hover:bg-gray-50 rounded-md">
               <HelpCircle className="w-4 h-4" />
               Help & Support

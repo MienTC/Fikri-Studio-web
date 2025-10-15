@@ -1,0 +1,1 @@
+Small UI components (Button, Input, Card) live here. Create files like Button.tsx, Input.tsx when needed.
