@@ -1,23 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../services/api";
 import { toast } from "react-toastify";
-import { useAuth } from '../context/AuthProvider';
-
-interface Ticket {
-  id: number;
-  title: string;
-  description: string;
-  customerId: number;
-  type: string;
-  priority: string;
-  status: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
+import { useAuth } from "../context/AuthProvider";
+import type { CreateTicketDto, TicketType, TicketPriority } from "../services/ticketService";
+import { ticketService } from "../services/ticketService";
 
 interface CreateTicketProps {
-  onAdd: (ticket: Ticket) => void;
+  onAdd: (ticket: any) => void;
 }
 
 const priorities: ("Low" | "Medium" | "High")[] = ["Low", "Medium", "High"];
@@ -27,6 +18,9 @@ const assignees = ["Fikri Studio", "Support Team", "Dev Team"];
 
 const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
   const [ticketName, setTicketName] = useState("Help Me Cancel My Order");
   const [message, setMessage] = useState("");
   const [priority, setPriority] = useState<"Low" | "Medium" | "High">("High");
@@ -35,207 +29,192 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
   const [assignee, setAssignee] = useState("Fikri Studio");
   const [tags, setTags] = useState<string[]>(["Support", "Order"]);
   const [tagInput, setTagInput] = useState("");
+  const [followerInput, setFollowerInput] = useState("");
   const [followers, setFollowers] = useState(["Eder Militao"]);
   const [customerId, setCustomerId] = useState<number | null>(4);
-  const [customers, setCustomers] = useState<{id: number, name: string, email: string}[]>([]);
 
-  const navigate = useNavigate();
+  // Fetch customers
+  const { data: customers = [], isLoading: customersLoading } = useQuery({
+    queryKey: ["customers"],
+    queryFn: async () => {
+      const res = await api.get("/customers");
+      return res.data?.data || [];
+    },
+  });
 
-  useEffect(() => {
-    async function fetchCustomers() {
-      try {
-        const res = await api.get("/customers");
-        if (res.data && Array.isArray(res.data.data)) {
-          setCustomers(res.data.data);
-        }
-      } catch (err) {
-        setCustomers([]);
-      }
+  const createTicketMutation = useMutation({
+    mutationFn: (payload: CreateTicketDto) => ticketService.createTicket(payload),
+    onSuccess: (newTicket) => {
+      onAdd(newTicket);
+      toast.success("Tạo ticket thành công");
+      setTicketName("");
+      setMessage("");
+      setPriority("High");
+      setTicketType("Incident");
+      setRequester("Nguyen Van A");
+      setAssignee("Fikri Studio");
+      setTags(["Support", "Order"]);
+      setFollowers(["Eder Militao"]);
+      setCustomerId(null);
+      queryClient.invalidateQueries({ queryKey: ["tickets"] });
+      navigate("/ticket");
+    },
+    onError: (error: any) => {
+      toast.error("Tạo ticket thất bại: " + (error?.response?.data?.message || error.message));
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || user.role !== "ADMIN") {
+      toast.error("Bạn không có quyền tạo ticket.");
+      return;
     }
-    fetchCustomers();
-  }, []);
+    if (!customerId) {
+      toast.error("Vui lòng chọn khách hàng.");
+      return;
+    }
+
+    const payload: CreateTicketDto = {
+      title: ticketName.trim(),
+      description: message.trim() || "No description",
+      customerId,
+      type: ticketType.toUpperCase() as TicketType,
+      priority: priority.toUpperCase() as TicketPriority,
+      tags,
+      followerIds: followers.map(() => 1),
+    };
+
+    createTicketMutation.mutate(payload);
+  };
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && tagInput.trim()) {
-      if (!tags.includes(tagInput.trim())) {
-        setTags([...tags, tagInput.trim()]);
-      }
+      if (!tags.includes(tagInput.trim())) setTags([...tags, tagInput.trim()]);
       setTagInput("");
       e.preventDefault();
     }
   };
 
-  const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter((tag) => tag !== tagToRemove));
-  };
-
-  const removeFollower = (followerToRemove: string) => {
-    setFollowers(followers.filter((f) => f !== followerToRemove));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Form submitted");
-
-    // Show loading toast
-    const loadingToast = toast.loading("Đang tạo...");
-    
-
-    try {
-      // Check token first
-      const token = localStorage.getItem("token");
-      console.log("Current token:", token ? "exists" : "missing");
-      console.log("Current user object:", user);
-      if (!user || user.role === "MEMBER") {
-        toast.dismiss(loadingToast);
-        toast.error("Bạn không có quyền tạo mới ticket.");
-        return;
-      }
-
-      const payload = {
-        title: String(ticketName).trim(),
-        description: String(message || "").trim() || "No description",
-        customerId: customerId ?? 4,
-        type: ticketType.toUpperCase(),
-        priority: priority.toUpperCase()
-        // Removed status field temporarily due to database schema issue
-      };
-      
-      // Log payload với kiểu dữ liệu
-      console.log("Payload with types:", {
-        ...payload,
-        titleType: typeof payload.title,
-        descriptionType: typeof payload.description,
-        customerIdType: typeof payload.customerId,
-        typeType: typeof payload.type,
-        priorityType: typeof payload.priority
-      });
-      console.log("Sending payload:", payload);
-      console.log("Making API call to /tickets");
-      
-      const res = await api.post("/tickets", payload);
-      console.log("API success response:", {
-        status: res.status,
-        statusText: res.statusText,
-        data: res.data
-      });
-      if (res.data && res.data.error) {
-        console.error("API error message:", res.data.error);
-      }
-      
-      if (res.data && !res.data.error) {
-        console.log("Adding new ticket to list");
-        onAdd(res.data.data);
-        toast.dismiss(loadingToast);
-        toast.success("Tạo ticket thành công");
-        setTicketName("");
-        setMessage("");
-        setPriority("High");
-        setTicketType("Incident");
-        setRequester(requesters[0]);
-        setAssignee(assignees[0]);
-        setTags(["Support", "Order"]);
-        setFollowers(["Eder Militao"]);
-        navigate("/ticket");
-      } else {
-        console.error("API returned error:", res.data);
-        toast.dismiss(loadingToast);
-        toast.error("Tạo ticket thất bại");
-      }
-    } catch (err: unknown) {
-      const error = err as { message?: string; response?: { data?: { message?: string }; status?: number } };
-      console.error("API call failed:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        errorObject: error
-      });
-      toast.dismiss(loadingToast);
-      toast.error("Tạo ticket thất bại");
+  const handleAddFollower = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && followerInput.trim()) {
+      if (!followers.includes(followerInput.trim())) setFollowers([...followers, followerInput.trim()]);
+      setFollowerInput("");
+      e.preventDefault();
     }
   };
 
-  return (
-    <div className="flex-1 flex flex-col bg-gray-50 overflow-hidden">
-      <div className="flex-1 overflow-y-auto p-6">
-        <div className="bg-white p-4 lg:p-8 rounded-lg shadow-md max-w-7xl mx-auto">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-4">
-          Create New Ticket
-        </h2>
+  const removeTag = (tag: string) => setTags(tags.filter((t) => t !== tag));
+  const removeFollower = (f: string) => setFollowers(followers.filter((i) => i !== f));
 
-        <form id="ticket-form" onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column: Message */}
-          <div className="lg:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Message
-            </label>
-            <div className="mb-4">
-              <span className="text-sm text-gray-500 mr-2">From</span>
-              <select className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:ring-indigo-500 focus:border-indigo-500">
+  return (
+    <div className="flex flex-col bg-gray-50">
+      <div className="max-w-7xl mx-auto w-full p-4">
+        <h2 className="text-xl font-bold mb-4">Create New Ticket</h2>
+
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-2 gap-4 bg-white rounded-lg shadow p-4">
+          {/* LEFT COLUMN - MESSAGE */}
+          <div className="flex flex-col gap-3 border-r border-gray-200 pr-3">
+            <h3 className="text-base font-semibold text-gray-800 mb-1">Message</h3>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">From</label>
+              <select className="w-full border border-gray-300 rounded p-1.5 text-sm">
                 <option>Fikri Studio Support</option>
               </select>
             </div>
-            <textarea
-              className="w-full border border-gray-300 rounded-lg p-3 min-h-[200px] focus:ring-indigo-500 focus:border-indigo-500"
-              placeholder="Comment or Type '/' For commands"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-            />
-    
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Comment or Type “/” for commands</label>
+              <textarea
+                className="w-full border border-gray-300 rounded p-1.5 min-h-[120px] focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Write your message here..."
+              />
+            </div>
           </div>
 
-          <div className="lg:col-span-1 space-y-6">
+          {/* RIGHT COLUMN - TICKET INFO */}
+          <div className="flex flex-col gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Ticket Name</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Ticket Name</label>
               <input
                 type="text"
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full border border-gray-300 rounded p-1.5 text-sm"
                 value={ticketName}
                 onChange={(e) => setTicketName(e.target.value)}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Priority</label>
-              <select
-                className="w-full border border-gray-300 rounded-lg p-2 bg-white focus:ring-indigo-500 focus:border-indigo-500"
-                value={priority}
-                onChange={e => setPriority(e.target.value as "Low" | "Medium" | "High")}
-              >
+              <label className="block text-xs font-medium text-gray-600 mb-1">Priority</label>
+              <div className="flex gap-2">
                 {priorities.map((p) => (
-                  <option key={p} value={p}>{p}</option>
+                  <button
+                    type="button"
+                    key={p}
+                    onClick={() => setPriority(p)}
+                    className={`px-3 py-0.5 rounded border text-xs ${
+                      priority === p ? "bg-green-100 border-green-500 text-green-700" : "border-gray-300 text-gray-600"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Ticket Type</label>
+              <select
+                className="w-full border border-gray-300 rounded p-1.5 text-sm"
+                value={ticketType}
+                onChange={(e) => setTicketType(e.target.value)}
+              >
+                {ticketTypes.map((t) => (
+                  <option key={t}>{t}</option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Ticket Type</label>
-              <select className="w-full border border-gray-300 rounded-lg p-2 bg-white focus:ring-indigo-500 focus:border-indigo-500" value={ticketType} onChange={(e) => setTicketType(e.target.value)}>
-                {ticketTypes.map((type) => <option key={type}>{type}</option>)}
+              <label className="block text-xs font-medium text-gray-600 mb-1">Requester</label>
+              <select
+                className="w-full border border-gray-300 rounded p-1.5 text-sm"
+                value={requester}
+                onChange={(e) => setRequester(e.target.value)}
+              >
+                {requesters.map((r) => (
+                  <option key={r}>{r}</option>
+                ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Requester</label>
-              <select className="w-full border border-gray-300 rounded-lg p-2 bg-white focus:ring-indigo-500 focus:border-indigo-500" value={requester} onChange={(e) => setRequester(e.target.value)}>
-                {requesters.map((r) => <option key={r}>{r}</option>)}
+              <label className="block text-xs font-medium text-gray-600 mb-1">Assignee</label>
+              <select
+                className="w-full border border-gray-300 rounded p-1.5 text-sm"
+                value={assignee}
+                onChange={(e) => setAssignee(e.target.value)}
+              >
+                {assignees.map((a) => (
+                  <option key={a}>{a}</option>
+                ))}
               </select>
             </div>
 
+            {/* Tags */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Assignee</label>
-              <select className="w-full border border-gray-300 rounded-lg p-2 bg-white focus:ring-indigo-500 focus:border-indigo-500" value={assignee} onChange={(e) => setAssignee(e.target.value)}>
-                {assignees.map((a) => <option key={a}>{a}</option>)}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
-              <div className="flex flex-wrap gap-2 mb-2">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Tags</label>
+              <div className="flex flex-wrap gap-1 mb-1">
                 {tags.map((tag) => (
-                  <span key={tag} className="flex items-center bg-gray-200 text-gray-800 text-xs font-medium px-2.5 py-1 rounded-full">
+                  <span
+                    key={tag}
+                    className="flex items-center bg-blue-100 text-blue-800 text-xs font-medium px-2 py-0.5 rounded-full"
+                  >
                     {tag}
-                    <button onClick={() => removeTag(tag)} className="ml-1.5 text-gray-500 hover:text-gray-800">
+                    <button onClick={() => removeTag(tag)} className="ml-1 text-blue-500 hover:text-blue-800">
                       &times;
                     </button>
                   </span>
@@ -243,61 +222,75 @@ const CreateTicket: React.FC<CreateTicketProps> = ({ onAdd }) => {
               </div>
               <input
                 type="text"
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="Add tags..."
+                className="w-full border border-gray-300 rounded p-1.5 text-sm"
                 value={tagInput}
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={handleAddTag}
               />
             </div>
 
+            {/* Followers */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Followers</label>
-              <div className="flex flex-wrap gap-2">
-                {followers.map((follower) => (
-                  <span key={follower} className="flex items-center bg-gray-200 text-gray-800 text-xs font-medium px-2.5 py-1 rounded-full">
-                    {follower}
-                    <button onClick={() => removeFollower(follower)} className="ml-1.5 text-gray-500 hover:text-gray-800">
+              <label className="block text-xs font-medium text-gray-600 mb-1">Followers</label>
+              <div className="flex flex-wrap gap-1 mb-1">
+                {followers.map((f) => (
+                  <span
+                    key={f}
+                    className="flex items-center bg-gray-200 text-gray-700 text-xs font-medium px-2 py-0.5 rounded-full"
+                  >
+                    {f}
+                    <button onClick={() => removeFollower(f)} className="ml-1 text-gray-500 hover:text-gray-800">
                       &times;
                     </button>
                   </span>
                 ))}
               </div>
+              <input
+                type="text"
+                placeholder="Add followers..."
+                className="w-full border border-gray-300 rounded p-1.5 text-sm"
+                value={followerInput}
+                onChange={(e) => setFollowerInput(e.target.value)}
+                onKeyDown={handleAddFollower}
+              />
             </div>
 
+            {/* Client */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Client</label>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Client</label>
               <select
-                className="w-full border border-gray-300 rounded-lg p-2 focus:ring-indigo-500 focus:border-indigo-500"
+                className="w-full border border-gray-300 rounded p-1.5 text-sm"
                 value={customerId ?? ""}
-                onChange={e => setCustomerId(Number(e.target.value))}
+                onChange={(e) => setCustomerId(Number(e.target.value))}
               >
-                <option value="" disabled>Chọn khách hàng...</option>
-                {customers.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                <option value="">{customersLoading ? "Đang tải..." : "Chọn khách hàng..."}</option>
+                {customers.map((c: { id: number; name: string }) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
                 ))}
               </select>
             </div>
-          </div>
-          
-          {/* Action Buttons */}
-          <div className="mt-8 col-span-3 flex justify-end gap-4">
-            <button
-              type="button"
-              className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
-              onClick={() => navigate("/ticket")}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700"
-            >
-              Submit as New
-            </button>
+
+            <div className="flex justify-end mt-4 gap-2">
+              <button
+                type="button"
+                onClick={() => navigate("/ticket")}
+                className="px-3 py-1.5 bg-gray-300 text-gray-700 rounded text-sm hover:bg-gray-400"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={createTicketMutation.isPending}
+                className="px-4 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+              >
+                {createTicketMutation.isPending ? "Đang tạo..." : "Submit as New"}
+              </button>
+            </div>
           </div>
         </form>
-        </div>
       </div>
     </div>
   );

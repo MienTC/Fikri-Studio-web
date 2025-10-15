@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { ticketService } from "../services/ticketService";
+import { useTickets, useDeleteTicket } from "../hooks/useTickets";
+import { useAuth } from "../context/AuthProvider";
 
 const priorityColors: Record<string, string> = {
   HIGH: "bg-red-100 text-red-600",
@@ -30,14 +31,14 @@ interface TicketData {
   updatedAt?: string;
 }
 
-interface TicketProps {
-  tickets: TicketData[];
-  onDelete: (id: number) => void;
-}
-
-const Ticket: React.FC<TicketProps> = ({ tickets = [], onDelete }) => {
+const Ticket: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { data: tickets = [], isLoading, error } = useTickets();
+  const deleteTicketMutation = useDeleteTicket();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+  const isAdmin = user?.role === "ADMIN";
 
   // Chọn tất cả
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,29 +58,26 @@ const Ticket: React.FC<TicketProps> = ({ tickets = [], onDelete }) => {
 
   // Xóa nhiều ticket
   const handleDeleteSelected = async () => {
-    let success = 0;
-    let fail = 0;
-    const failedTickets: string[] = [];
-
-    const loadingToast = toast.loading(`Đang xóa ${selectedIds.length} ticket...`);
-    for (const id of selectedIds) {
-      const result = await ticketService.deleteTicket(id);
-      if (result.success) {
-        onDelete(id);
-        success++;
-      } else {
-        fail++;
-        failedTickets.push(`#TC-${id}: ${result.message || "Lỗi không xác định"}`);
-      }
+    if (!isAdmin) {
+      toast.error("Bạn không có quyền xóa ticket");
+      return;
     }
 
-    setSelectedIds([]);
-    toast.dismiss(loadingToast);
+    const loadingToast = toast.loading(`Đang xóa ${selectedIds.length} ticket...`);
 
-    if (success > 0) toast.success(`Xóa ${success} thành công`);
-    if (fail > 0) {
-      toast.error(`Xóa ${fail} thất bại`);
-      console.error("Failed tickets:", failedTickets);
+    try {
+      // Xóa từng ticket bằng React Query mutation
+      for (const id of selectedIds) {
+        await deleteTicketMutation.mutateAsync(id);
+      }
+
+      setSelectedIds([]);
+      toast.dismiss(loadingToast);
+      toast.success(`Xóa ${selectedIds.length} ticket thành công`);
+    } catch (error: any) {
+      toast.dismiss(loadingToast);
+      toast.error(`Xóa thất bại: ${error?.message || "Lỗi không xác định"}`);
+      console.error("Delete error:", error);
     }
   };
 
@@ -104,8 +102,8 @@ const Ticket: React.FC<TicketProps> = ({ tickets = [], onDelete }) => {
             </button>
           </div>
 
-          {/* Action buttons */}
-          {selectedIds.length > 0 && (
+          {/* Action buttons - chỉ hiển thị cho ADMIN */}
+          {selectedIds.length > 0 && isAdmin && (
             <div className="justify-end mb-4 flex gap-2 items-center">
               <button
                 onClick={handleUpdateSelected}
@@ -134,6 +132,15 @@ const Ticket: React.FC<TicketProps> = ({ tickets = [], onDelete }) => {
               <span className="text-sm text-gray-500">
                 Đã chọn: {selectedIds.length}
               </span>
+            </div>
+          )}
+
+          {/* Thông báo cho MEMBER */}
+          {!isAdmin && selectedIds.length > 0 && (
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                Bạn không có quyền chỉnh sửa hoặc xóa ticket. Chỉ ADMIN mới có thể thực hiện các thao tác này.
+              </p>
             </div>
           )}
 
@@ -212,14 +219,14 @@ const Ticket: React.FC<TicketProps> = ({ tickets = [], onDelete }) => {
                         <td className="px-3 py-2">
                           <span
                             className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
-                              typeColors[t.type] ?? "bg-gray-100 text-gray-600"
+                              typeColors[(t as any).type] ?? "bg-gray-100 text-gray-600"
                             }`}
                           >
-                            {t.type}
+                            {(t as any).type}
                           </span>
                         </td>
                         <td className="px-3 py-2 text-sm text-gray-700">
-                          {t.customer?.name ?? "-"}
+                          {(t as any).customer?.name ?? "-"}
                         </td>
                         <td className="px-3 py-2 text-xs text-gray-500 whitespace-nowrap">
                           {t.createdAt

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ticketService } from "../services/ticketService";
 import { toast } from "react-toastify";
+import { useAuth } from "../context/AuthProvider";
 
 const customers = [
   { id: 4, name: "Công ty ABC" },
@@ -15,6 +16,8 @@ const ticketTypes = ["INCIDENT", "QUESTION", "SUGGESTION", "PROBLEM", "TASK", "O
 const UpdateTicket: React.FC<{ onUpdate?: (ticket: any) => void }> = ({ onUpdate }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
 
   // --- State cho các trường trong form ---
   const [subject, setSubject] = useState("");
@@ -61,11 +64,16 @@ const UpdateTicket: React.FC<{ onUpdate?: (ticket: any) => void }> = ({ onUpdate
 
   // Hàm xử lý khi nhấn nút "Save Changes"
   const handleUpdate = async () => {
+    if (!isAdmin) {
+      toast.error("Bạn không có quyền cập nhật ticket");
+      return;
+    }
+
     const updatedData = {
-      title: subject, 
+      title: subject,
       priority,
       type: ticketType,
-      customerId: Number(customerId), 
+      customerId: Number(customerId),
     };
 
     // Show loading toast

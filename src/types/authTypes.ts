@@ -1,8 +1,11 @@
 export interface User {
   id: number;
+  name: string;
   email: string;
-  role: string;
+  role: "ADMIN" | "MEMBER";
   avatar: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface LoginDto {

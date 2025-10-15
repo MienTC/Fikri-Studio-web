@@ -10,7 +10,6 @@ export interface Ticket {
   priority: string;
   createdAt: string;
   updatedAt: string;
-  // Thêm các field khác nếu cần
 }
 
 interface TicketsResponse {

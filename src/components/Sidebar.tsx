@@ -3,9 +3,11 @@ import {
   Phone,
   Plus,
   Search,
+  LogOut,
 } from "lucide-react";
 
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthProvider";
 
 interface SidebarProps {
   onTicketClick?: () => void;
@@ -13,18 +15,29 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ onTicketClick }) => {
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   return (
     <div className="hidden lg:block">
-      <div className="w-64 h-full bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-4 flex-1 flex flex-col">
+      <div className="w-64  bg-white border-r border-gray-200 flex flex-col">
+        <div className="p-4  flex-1 flex flex-col">
           <div className="flex items-center gap-2 mb-2 border-b-1 p-2 border-gray-100">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-bold">FS</span>
+            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center overflow-hidden">
+              {user?.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-white text-sm font-bold">
+                  {user?.email?.charAt(0).toUpperCase() || "U"}
+                </span>
+              )}
             </div>
             <div>
-              <h1 className="font-semibold text-gray-900">Fikri Studio</h1>
-              <p className="text-xs text-gray-500">Agent Admin</p>
+              <h1 className="font-semibold text-gray-900">{user?.email || "User"}</h1>
+              <p className="text-xs text-gray-500">{user?.role || "Agent"}</p>
             </div>
           </div>
 
@@ -366,14 +379,23 @@ const Sidebar: React.FC<SidebarProps> = ({ onTicketClick }) => {
                   <path d="M14.5 4l5.5 5.5" />
                 </svg>
               </div>
+            {user?.role === "ADMIN" && (
               <Link to="/addticket" className="flex items-center gap-2 text-xs text-blue-600">
                 <Plus className="w-3 h-3" />
                 Add new
               </Link>
+            )}
             </div>
           </div>
 
-          <div className="mt-auto">
+          <div className="mt-auto space-y-2">
+            <button
+              onClick={logout}
+              className="flex items-center gap-2 text-xs text-gray-600 w-full px-3 py-2 hover:bg-gray-50 rounded-md"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </button>
             <button className="flex items-center gap-2 text-xs text-gray-600 w-full px-3 py-2 hover:bg-gray-50 rounded-md">
               <HelpCircle className="w-4 h-4" />
               Help & Support

@@ -25,7 +25,7 @@ const Login: React.FC<{ setIsAuthenticated: (v: boolean) => void }> = ({
       try {
         const loginData = await authService.login({ email, password });
         if (loginData && loginData.user && loginData.access_token) {
-          login({ user: loginData.user, token: loginData.access_token });
+          login(loginData);
           setIsAuthenticated(true);
           localStorage.setItem("isAuthenticated", "true");
           toast.success("Đăng nhập thành công");

@@ -21,10 +21,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = (userData: any) => {
     setIsAuthenticated(true);
-    setUser(userData);
+    const userObj = userData.user || userData;
+    setUser(userObj);
     // Lưu cả user và token vào localStorage
     localStorage.setItem("token", userData.token || userData.access_token);
-    localStorage.setItem("user", JSON.stringify(userData.user || userData));
+    localStorage.setItem("user", JSON.stringify(userObj));
     navigate("/dashboard");
   };
 
