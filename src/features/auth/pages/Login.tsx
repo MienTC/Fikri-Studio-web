@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import loginImg from "../../../../public/assets/login.jpg";
+import loginImg from "../../../assets/login.jpg";
 import { useAuth } from "../context/AuthProvider";
 import { authService } from "../../../services/authServices";
 import { toast } from "react-toastify";
@@ -17,7 +17,7 @@ const Login: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log("Login attempt with:", { email, password });
-    
+
     try {
       setIsSubmitting(true);
       try {
@@ -138,7 +138,7 @@ const Login: React.FC = () => {
               <button
                 type="button"
                 className="text-indigo-500 hover:underline font-medium"
-                onClick={() => console.log("Switch to Register")}
+                onClick={() => navigate("/signup")}
               >
                 Sign up
               </button>

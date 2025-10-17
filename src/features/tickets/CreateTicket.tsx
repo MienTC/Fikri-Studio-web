@@ -1,1 +1,1 @@
-export { default } from "../../components/CreateTicket";
+export { default } from "../auth/components/CreateTicket";

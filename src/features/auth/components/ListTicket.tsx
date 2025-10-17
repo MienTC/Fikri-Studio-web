@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { useTickets, useDeleteTicket } from "../hooks/useTickets";
-import { useAuth } from "../features/auth/controller/AuthProvider";
+import { useTickets, useDeleteTicket } from "../../../hooks/useTickets";
+import { useAuth } from "../controller/AuthProvider";
 
 const priorityColors: Record<string, string> = {
   HIGH: "bg-red-100 text-red-600",
@@ -24,7 +24,7 @@ const typeColors: Record<string, string> = {
 const Ticket: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: tickets = [] } = useTickets();
+  const { data: tickets = [], isLoading } = useTickets();
   const deleteTicketMutation = useDeleteTicket();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
@@ -76,6 +76,17 @@ const Ticket: React.FC = () => {
       navigate(`/update-ticket/${selectedIds[0]}`);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-gray-600 mt-4">Loading tickets...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col bg-gray-50 overflow-hidden">

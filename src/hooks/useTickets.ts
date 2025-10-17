@@ -30,11 +30,13 @@ export const useTickets = () => {
     queryFn: async () => {
       const response = await api.get<TicketsResponse>("/tickets");
       const tickets = response.data.data || [];
-      
+
       // Sắp xếp theo updatedAt mới nhất
-      return tickets.sort(
+      const sortedTickets = tickets.sort(
         (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
       );
+
+      return sortedTickets;
     },
   });
 };
@@ -65,9 +67,6 @@ export const useCreateTicket = () => {
       queryClient.setQueryData<Ticket[]>(QUERY_KEYS.tickets, (oldTickets = []) => {
         return [newTicket, ...oldTickets];
       });
-
-      // Hoặc invalidate để refetch
-      // queryClient.invalidateQueries({ queryKey: QUERY_KEYS.tickets });
     },
   });
 };

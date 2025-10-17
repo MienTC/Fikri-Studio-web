@@ -14,7 +14,18 @@ export interface LoginDto {
   password: string;
 }
 
+export interface SignUpDto {
+  name: string;
+  email: string;
+  password: string;
+}
+
 export interface LoginData {
+  user: User;
+  access_token: string;
+}
+
+export interface SignUpData {
   user: User;
   access_token: string;
 }

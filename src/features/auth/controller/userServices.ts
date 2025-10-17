@@ -34,8 +34,19 @@ export const userService = {
     }
   },
 
-  // Lấy danh sách tất cả user (admin)
-  getUsers: async (): Promise<UserData[] | null> => {
+  // Lấy danh sách tất cả user (admin) với phân trang
+  getUsers: async (page: number = 1, limit: number = 10): Promise<{ users: UserData[]; total: number; page: number; limit: number } | null> => {
+    try {
+      const res = await api.get(`/users?page=${page}&limit=${limit}`);
+      return res.data.data;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  },
+
+  // Lấy danh sách tất cả user (admin) - giữ lại để tương thích ngược
+  getAllUsers: async (): Promise<UserData[] | null> => {
     try {
       const res = await api.get("/users");
       return res.data.data;

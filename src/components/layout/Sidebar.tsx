@@ -42,7 +42,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onTicketClick }) => {
               )}
             </div>
             <div className="flex-1">
-              <h1 className="font-semibold text-gray-900">{user?.name || user?.fullname || "User"}</h1>
+              <h1 className="font-semibold text-gray-900">{user?.name || user?.fullname || user?.email}</h1>
               <p className="text-xs text-gray-500">{user?.role || "Agent"}</p>
             </div>
             <button

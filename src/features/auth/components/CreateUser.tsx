@@ -62,7 +62,7 @@ const CreateUser: React.FC = () => {
     if (!validateForm()) return;
 
     try {
-      await createUserMutation.mutateAsync({
+      const newUser = await createUserMutation.mutateAsync({
         name: formData.name.trim(),
         email: formData.email.trim(),
         password: formData.password,
@@ -70,10 +70,19 @@ const CreateUser: React.FC = () => {
         avatar: formData.avatar.trim() || undefined,
       });
 
-      toast.success("User created successfully");
-      navigate("/users");
+      if (newUser) {
+        toast.success("User created successfully");
+        navigate("/users");
+      } else {
+        toast.error("Failed to create user");
+      }
     } catch (error: any) {
-      toast.error(error.message || "Failed to create user");
+      console.error("Create user error:", error);
+      if (error?.response?.data?.message?.includes("already exists") || error?.message?.includes("already exists")) {
+        toast.error("Email đã được sử dụng!");
+      } else {
+        toast.error(error?.response?.data?.message || error.message || "Failed to create user");
+      }
     }
   };
 

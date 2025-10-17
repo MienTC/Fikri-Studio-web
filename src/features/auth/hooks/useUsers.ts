@@ -8,12 +8,23 @@ export const USER_QUERY_KEYS = {
   user: (id: number) => ["user", id],
 };
 
-// Hook để fetch danh sách users
-export const useUsers = () => {
-  return useQuery<UserData[]>({
-    queryKey: USER_QUERY_KEYS.users,
+// Hook để fetch danh sách users với phân trang
+export const useUsers = (page: number = 1, limit: number = 10) => {
+  return useQuery<{ users: UserData[]; total: number; page: number; limit: number }>({
+    queryKey: [...USER_QUERY_KEYS.users, page, limit],
     queryFn: async () => {
-      const users = await userService.getUsers();
+      const result = await userService.getUsers(page, limit);
+      return result || { users: [], total: 0, page, limit };
+    },
+  });
+};
+
+// Hook để fetch tất cả users (không phân trang)
+export const useAllUsers = () => {
+  return useQuery<UserData[]>({
+    queryKey: [...USER_QUERY_KEYS.users, 'all'],
+    queryFn: async () => {
+      const users = await userService.getAllUsers();
       return users || [];
     },
   });
