@@ -1,47 +1,44 @@
-import React, { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import React from "react";
+import { Controller, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import loginImg from "../../../assets/login.jpg";
 import { useAuth } from "../context/AuthProvider";
-import { authService } from "../../../services/authServices";
-import { toast } from "react-toastify";
+interface LoginForm {
+  email: string;
+  password: string;
+}
 
 const Login: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const {
+    control,
+    handleSubmit,
+    reset,
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+    formState: { errors },
+  } = useForm<LoginForm>();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    console.log("Login attempt with:", { email, password });
+  const { mutateAsync: handlerLogin, isPending: isLoginLoading } = useMutation({
+    mutationKey: ["login-action"],
+    mutationFn: async (values: LoginForm) =>
+      login({
+        email: values?.email,
+        password: values?.password,
+      }),
+    onSuccess: () => {
+      reset({
+        email: "",
+        password: "",
+      });
+      navigate("/dashboard");
+    },
+    onError: (error) => toast.error("Login Fail: " + error?.message),
+  });
 
-    try {
-      setIsSubmitting(true);
-      try {
-        const loginData = await authService.login({ email, password });
-        if (loginData && loginData.user && loginData.access_token) {
-          login(loginData);
-          toast.success("Đăng nhập thành công");
-          navigate("/dashboard");
-        } else {
-          setErrorMessage("Sai tài khoản hoặc mật khẩu!");
-          toast.error("Đăng nhập thất bại");
-        }
-      } catch (err) {
-        setErrorMessage("Sai tài khoản hoặc mật khẩu!");
-        toast.error("Đăng nhập thất bại");
-      }
-      setIsSubmitting(false);
-    } catch (err: any) {
-      console.error("Login error details:", err);
-      setErrorMessage("Tài khoản hoặc mật khẩu sai!");
-      toast.error("Đăng nhập thất bại");
-      setIsSubmitting(false);
-    }
-  };
+  const onSubmit = (values: LoginForm) => handlerLogin(values);
 
   return (
     <div className="min-h-screen w-full flex justify-center items-center bg-gradient-to-r from-blue-100 to-indigo-200">
@@ -54,23 +51,33 @@ const Login: React.FC = () => {
             Hey! Welcome back to your special place
           </p>
 
-          <form className="flex flex-col space-y-6" onSubmit={handleSubmit}>
-            {errorMessage && (
-              <div className="text-red-500 text-sm text-center mb-2">
-                {errorMessage}
-              </div>
-            )}
+          <form
+            className="flex flex-col space-y-6"
+            onSubmit={handleSubmit(onSubmit)}
+          >
+            <div className="text-red-500 text-sm text-center mb-2">
+              {errors?.email?.message || errors?.password?.message}
+            </div>
 
             {/* Email */}
             <div className="relative">
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="username"
-                className="pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 w-full shadow-sm"
+              <Controller
+                control={control}
+                name="email"
+                rules={{
+                  required: "Email phải nhập",
+                }}
+                render={({ field }) => (
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    {...field}
+                    autoComplete="username"
+                    className="pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 w-full shadow-sm"
+                  />
+                )}
               />
+
               <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-indigo-400">
                 <svg
                   width="20"
@@ -88,13 +95,29 @@ const Login: React.FC = () => {
 
             {/* Password */}
             <div className="relative">
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                className="pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 w-full shadow-sm"
+              <Controller
+                control={control}
+                name="password"
+                rules={{
+                  required: "Phải điền mật khẩu",
+                  minLength: {
+                    value: 4,
+                    message: "Mật khẩu cần phải có trên 4 ký tự",
+                  },
+
+                  maxLength: {
+                    value: 12,
+                    message: "Mật khẩu giới hạn bởi 12 ký tự",
+                  },
+                }}
+                render={({ field }) => (
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    {...field}
+                    className="pl-12 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 w-full shadow-sm"
+                  />
+                )}
               />
               <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-indigo-400">
                 <svg
@@ -128,15 +151,21 @@ const Login: React.FC = () => {
             <button
               type="submit"
               className="w-full bg-gradient-to-r from-indigo-500 to-pink-500 hover:from-indigo-600 hover:to-pink-600 text-white py-3 rounded-xl font-bold text-lg shadow-lg transition disabled:opacity-60"
-              disabled={isSubmitting}
+              disabled={isLoginLoading}
             >
-              {isSubmitting ? "Đang đăng nhập..." : "Sign in"}
+              {isLoginLoading ? (
+                <div className="flex gap-1.5 items-center justify-center">
+                  <div className="loader size-4" /> Đang đăng nhập...
+                </div>
+              ) : (
+                "Sign in"
+              )}
             </button>
 
             <div className="text-center text-sm text-gray-600">
               <span>Don't have an account? </span>
               <button
-                type="button"
+                type="submit"
                 className="text-indigo-500 hover:underline font-medium"
                 onClick={() => navigate("/signup")}
               >
